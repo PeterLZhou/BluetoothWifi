@@ -14,7 +14,7 @@ public class Receiver extends BroadcastReceiver {
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
     private WifiActivity mActivity;
-
+    //Constructor
     public Receiver(WifiP2pManager manager, WifiP2pManager.Channel channel,
                                        WifiActivity activity) {
         super();
@@ -35,9 +35,12 @@ public class Receiver extends BroadcastReceiver {
                 System.out.println("Wifi is off");
             }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-
+            System.out.println("Found peers!");
             // The peer list has changed!  We should probably do something about
             // that.
+            if (mManager != null) {
+                mManager.requestPeers(mChannel, mActivity);
+            }
 
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
 

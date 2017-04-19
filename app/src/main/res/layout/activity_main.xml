@@ -34,4 +34,21 @@
         android:layout_alignBottom="@+id/wifi"
         android:layout_alignParentStart="true"
         android:layout_marginStart="41dp" />
+
+    <Button
+        android:id="@+id/bluetooth2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/bluetooth"
+        android:layout_centerVertical="true"
+        android:text="BTClient" />
+
+    <Button
+        android:id="@+id/wifi2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/wifi"
+        android:layout_alignTop="@+id/bluetooth2"
+        android:layout_marginStart="11dp"
+        android:text="WifiClient" />
 </RelativeLayout>
