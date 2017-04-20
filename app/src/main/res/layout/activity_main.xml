@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:text="Wifi"
         android:layout_below="@+id/textView"
-        android:layout_toEndOf="@+id/bluetooth"
+        android:layout_toEndOf="@+id/bluetoothle"
         android:layout_marginStart="70dp"
         android:layout_marginTop="112dp" />
 
@@ -30,6 +30,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Bluetooth"
+        android:layout_below="@+id/textView"
+        android:layout_toEndOf="@+id/wifi"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="112dp" />
+
+    <Button
+        android:id="@+id/bluetoothle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="BluetoothLE"
         android:layout_alignBaseline="@+id/wifi"
         android:layout_alignBottom="@+id/wifi"
         android:layout_alignParentStart="true"
@@ -44,11 +54,19 @@
         android:text="BTClient" />
 
     <Button
+        android:id="@+id/bluetoothle2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/bluetoothle"
+        android:layout_centerVertical="true"
+        android:text="BTLEClient" />
+
+    <Button
         android:id="@+id/wifi2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/wifi"
-        android:layout_alignTop="@+id/bluetooth2"
+        android:layout_alignTop="@+id/bluetoothle2"
         android:layout_marginStart="11dp"
         android:text="WifiClient" />
 </RelativeLayout>

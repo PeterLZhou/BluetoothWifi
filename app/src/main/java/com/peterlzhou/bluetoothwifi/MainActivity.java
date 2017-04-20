@@ -16,8 +16,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Button wifiServerButton = (Button) findViewById(R.id.wifi);
         Button bluetoothServerButton = (Button) findViewById(R.id.bluetooth);
+        Button bluetoothLEServerButton = (Button) findViewById(R.id.bluetoothle);
         Button wifiClientButton = (Button) findViewById(R.id.wifi2);
         Button bluetoothClientButton = (Button) findViewById(R.id.bluetooth2);
+        Button bluetoothLEClientButton = (Button) findViewById(R.id.bluetoothle2);
 
         //Starts the wifi listening section
         wifiServerButton.setOnClickListener(
@@ -39,6 +41,17 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
+        //Starts the bluetooth listening section
+        bluetoothLEServerButton.setOnClickListener(
+                new Button.OnClickListener(){
+                    @Override
+                    public void onClick(View v){
+                        startBluetoothLE(v, SERVER);
+                    }
+                }
+        );
+
+
         //Starts the wifi sending section
         wifiClientButton.setOnClickListener(
                 new Button.OnClickListener(){
@@ -58,6 +71,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        //Starts the bluetooth sending section
+        bluetoothLEClientButton.setOnClickListener(
+                new Button.OnClickListener(){
+                    @Override
+                    public void onClick(View v){
+                        startBluetoothLE(v, CLIENT);
+                    }
+                }
+        );
     }
 
     public void startWifi(View view, int flag){
@@ -68,6 +91,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void startBluetooth(View view, int flag){
         Intent intent = new Intent(this, BluetoothActivity.class);
+        intent.putExtra(USER_TYPE, flag);
+        startActivity(intent);
+    }
+
+    public void startBluetoothLE(View view, int flag){
+        Intent intent = new Intent(this, BluetoothLEActivity.class);
         intent.putExtra(USER_TYPE, flag);
         startActivity(intent);
     }

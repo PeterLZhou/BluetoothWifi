@@ -16,8 +16,8 @@ import android.widget.TextView;
  * Created by robertrtung on 4/19/17.
  */
 
-public class BluetoothSendMessageActivity extends Activity {
-    private final static String TAG = BluetoothSendMessageActivity.class.getSimpleName();
+public class BluetoothLESendMessageActivity extends Activity {
+    private final static String TAG = BluetoothLESendMessageActivity.class.getSimpleName();
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -38,7 +38,7 @@ public class BluetoothSendMessageActivity extends Activity {
             Log.v(TAG, "On service connected");
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
-                Log.e(BluetoothSendMessageActivity.class.getSimpleName(), "Unable to initialize Bluetooth");
+                Log.e(BluetoothLESendMessageActivity.class.getSimpleName(), "Unable to initialize Bluetooth");
                 finish();
             }
             // Automatically connects to the device upon successful start-up initialization.
@@ -56,7 +56,7 @@ public class BluetoothSendMessageActivity extends Activity {
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.bluetooth_text);
+        setContentView(R.layout.bluetooth_le_text);
 
         mButton = (Button)findViewById(R.id.bt_submit);
         mEdit   = (EditText)findViewById(R.id.bt_edit_text);
