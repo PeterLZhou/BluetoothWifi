@@ -10,6 +10,8 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
 
 import java.io.IOError;
 import java.io.IOException;
@@ -28,6 +30,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     WifiP2pManager.Channel mChannel;
     WifiP2pManager mManager;
     BroadcastReceiver mReceiver;
+    WifiP2pConfig config = new WifiP2pConfig();
+
     int USER_TYPE;
     WifiP2pManager.PeerListListener mPeerListListener;
 
@@ -58,6 +62,26 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 System.out.println("Error code" + reasonCode);
             }
         });
+        Button sendAsClient = (Button) findViewById(R.id.sendstuff);
+        Button listenAsServer = (Button) findViewById(R.id.listen);
+        //Starts the wifi listening section
+        sendAsClient.setOnClickListener(
+                new Button.OnClickListener(){
+                    @Override
+                    public void onClick(View v){
+                        sendData();
+                    }
+                }
+        );
+
+        listenAsServer.setOnClickListener(
+                new Button.OnClickListener(){
+                    @Override
+                    public void onClick(View v){
+                        receiveData();
+                    }
+                }
+        );
     }
 
     @Override
@@ -73,27 +97,25 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     @Override
-    public void onPeersAvailable(WifiP2pDeviceList peerlist){
-        System.out.println("Peerlist available");
-        //nSystem.out.println(peerlist);
-        System.out.println(peerlist.getDeviceList());
+    public void onPeersAvailable(WifiP2pDeviceList peerlist) {
+        //System.out.println("Peerlist available");
+        //System.out.println(peerlist);
+        //System.out.println(peerlist.getDeviceList());
         WifiP2pDevice device = peerlist.getDeviceList().iterator().next();
-        WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
-                if (USER_TYPE == 0){
-                    System.out.println("Server-side code");
-                }
-                else if (USER_TYPE == 1){
+                if (USER_TYPE == 0) {
+                    //System.out.println("Server-side code");
+                    //System.out.println(config.deviceAddress);
+                } else if (USER_TYPE == 1) {
                     System.out.println("Client-side code");
-                }
-                else{
+                } else {
                     System.out.println("Error");
                 }
-                System.out.println("Successful connection!");
+                //System.out.println("Successful connection!");
             }
 
             @Override
@@ -101,6 +123,20 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 System.out.println("Failure with reason " + reason);
             }
         });
-
     }
+
+    public void sendData(){
+        System.out.println("sendasclient");
+        Intent serviceIntent = new Intent(this, FileTransferService.class);
+        serviceIntent.putExtra("MESSAGE", "hello world!");
+        serviceIntent.putExtra("go_host", "172.27.90.60");
+        serviceIntent.putExtra("go_port", 8888);
+        this.startService(serviceIntent);
+    }
+
+    public void receiveData(){
+        FileServerAsyncTask FileServerobj = new FileServerAsyncTask(this);
+        FileServerobj.execute();
+    }
+
 }

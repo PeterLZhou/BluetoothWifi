@@ -42,6 +42,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+        <service android:enabled="true" android:name="com.peterlzhou.bluetoothwifi.FileTransferService"></service>
     </application>
 
 </manifest>
