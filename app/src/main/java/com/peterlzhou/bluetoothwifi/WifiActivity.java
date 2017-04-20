@@ -12,11 +12,14 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.io.IOError;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.sql.Types.NULL;
 
 /**
  * Created by peterlzhou on 4/18/17.
@@ -69,7 +72,12 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 new Button.OnClickListener(){
                     @Override
                     public void onClick(View v){
-                        sendData();
+                        TextView text = (TextView) findViewById(R.id.message);
+                        String message = text.getText().toString();
+                        if (message == ""){
+                            message = "Hello World!";
+                        }
+                        sendData(message);
                     }
                 }
         );
@@ -125,10 +133,10 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         });
     }
 
-    public void sendData(){
+    public void sendData(String message){
         System.out.println("sendasclient");
         Intent serviceIntent = new Intent(this, FileTransferService.class);
-        serviceIntent.putExtra("MESSAGE", "hello world!");
+        serviceIntent.putExtra("MESSAGE", message);
         serviceIntent.putExtra("go_host", "172.27.90.60");
         serviceIntent.putExtra("go_port", 8888);
         this.startService(serviceIntent);
