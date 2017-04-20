@@ -15,9 +15,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -45,6 +44,7 @@ public class BluetoothActivity extends ListActivity {
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Log.v("BLE_Not_supported_rip", getPackageManager().toString());
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -55,6 +55,7 @@ public class BluetoothActivity extends ListActivity {
         mBluetoothAdapter = bluetoothManager.getAdapter();
         // Checks if Bluetooth is supported on the device.
         if (mBluetoothAdapter == null) {
+            Log.v("BLE_Not_supported", "No Bluetooth Adapter");
             Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -93,6 +94,20 @@ public class BluetoothActivity extends ListActivity {
         super.onPause();
         scanLeDevice(false);
         mLeDeviceListAdapter.clear();
+    }
+
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
+        if (device == null) return;
+        final Intent intent = new Intent(this, BluetoothSendMessageActivity.class);
+        intent.putExtra(BluetoothSendMessageActivity.EXTRAS_DEVICE_NAME, device.getName());
+        intent.putExtra(BluetoothSendMessageActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+        if (mScanning) {
+            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            mScanning = false;
+        }
+        startActivity(intent);
     }
 
     private void scanLeDevice(final boolean enable) {
