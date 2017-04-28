@@ -39,6 +39,8 @@ import static java.sql.Types.NULL;
 
 public class WifiActivity extends AppCompatActivity implements WifiP2pManager.PeerListListener{
     private int PACKETSTHRESHOLD = 10000;
+    private static final String TEMPDESTIP = "0.0.0.0";
+    private static final String TEMPDESTPORT = "8888";
     // private String seenMapFile = "seenMapFile";
     private File seenMapFile = new File("seenMapFile.txt");
     private HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
@@ -95,12 +97,22 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                         EditText ip = (EditText) findViewById(R.id.dest_ip);
                         EditText port = (EditText) findViewById(R.id.dest_port);
                         String message = text.getText().toString();
+                        String ipText = ip.getText().toString();
+                        String portText = ip.getText().toString();
                         if (message == ""){
                             message = "Hello World!";
                         }
+                        if (ipText == "") {
+                            ipText = TEMPDESTIP;
+                            System.out.println("IP Default used");
+                        }
+                        if (portText == "") {
+                            portText = TEMPDESTPORT;
+                            System.out.println("Port Default used");
+                        }
 
                         try{
-                            sendData(message, ip.getText().toString(), Integer.parseInt(port.getText().toString()));
+                            sendData(message, ipText, Integer.parseInt(portText));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
