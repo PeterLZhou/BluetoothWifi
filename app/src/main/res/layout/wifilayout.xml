@@ -37,5 +37,5 @@
         android:layout_width="300px"
         android:layout_height="100px"
         android:id="@+id/dest_port"
-        android:hint="Destination Port" />
+        android:hint="Destination Port (must be a number)" />
 </LinearLayout>
