@@ -186,6 +186,11 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         FileServerobj.execute();
     }
 
+    public void reachWeb(){
+        System.out.println("placeholder");
+    }
+
+
     public void addToSeen(String s, Integer i) {
         seenPacketsMap.put(s, i);
     }
@@ -257,5 +262,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     public static JSONObject getCurrentJSON(JSONObject js){
         return WifiActivity.currentJSON;
     }
+
+
 
 }

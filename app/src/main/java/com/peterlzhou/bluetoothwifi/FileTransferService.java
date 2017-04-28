@@ -88,11 +88,11 @@ public class FileTransferService extends IntentService {
             pack.put("body", message);
             pack.put("ack", false);
 
-            OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
-            out.write(pack.toString());
-            /*OutputStream stream = socket.getOutputStream();
-            stream.write(message.getBytes(Charset.forName("UTF-8")));
-            stream.close();*/
+            /*OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
+            out.write(pack.toString());*/
+            OutputStream stream = socket.getOutputStream();
+            stream.write(pack.toString().getBytes(Charset.forName("UTF-8")));
+            stream.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
             //e.printStackTrace();
