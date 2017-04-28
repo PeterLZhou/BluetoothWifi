@@ -14,11 +14,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/bt_edit_text"
-        android:hint="Type your message" ></EditText>
+        android:hint="Type your message" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/bt_submit"
-        android:text="Send"></Button>
+        android:text="Send" />
 </LinearLayout>
