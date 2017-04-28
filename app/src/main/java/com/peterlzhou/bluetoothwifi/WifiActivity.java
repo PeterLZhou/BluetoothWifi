@@ -147,7 +147,68 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         FileServerobj.execute();
     }
 
-    public void sendToWeb(){
-
+    public void addToSeen(String s, Integer i) {
+        seenPacketsMap.put(s, i);
     }
+
+    public void cleanSeen() {
+        for(String s: seenPacketsMap.keySet()) {
+            if(Calendar.getInstance().getTimeInMillis() - seenPacketsMap.get(s) > PACKETSTHRESHOLD) {
+                seenPacketsMap.remove(s);
+            }
+        }
+    }
+
+    public boolean checkSeen(String s) {
+        if (seenPacketsMap.keySet().contains(s)) {
+            return true;
+        }
+        return false;
+    }
+
+    public void saveSeen() throws IOException {
+        try {
+            FileOutputStream outStream = new FileOutputStream(seenMapFile);
+            OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
+
+            for (String s : seenPacketsMap.keySet()) {
+                outWriter.append(s);
+                outWriter.append("\n\r");
+                outWriter.append(seenPacketsMap.get(s).toString());
+                outWriter.append("\n\r");
+            }
+
+            outWriter.close();
+            outStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadSeen() {
+        FileInputStream is;
+        BufferedReader reader;
+
+        try {
+            if (seenMapFile.exists()) {
+                cleanSeen();
+                is = new FileInputStream(seenMapFile);
+                reader = new BufferedReader(new InputStreamReader(is));
+                String id = reader.readLine();
+                int time;
+                String temp;
+                while(id != null){
+                    temp = reader.readLine();
+                    if(temp == null) {
+                        break;
+                    }
+                    time = Integer.parseInt(temp);
+                    seenPacketsMap.put(id,time);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
