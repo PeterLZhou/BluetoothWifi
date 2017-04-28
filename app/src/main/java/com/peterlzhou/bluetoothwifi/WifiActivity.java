@@ -98,7 +98,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                         EditText port = (EditText) findViewById(R.id.dest_port);
                         String message = text.getText().toString();
                         String ipText = ip.getText().toString();
-                        String portText = ip.getText().toString();
+                        String portText = port.getText().toString();
                         if (message == ""){
                             message = "Hello World!";
                         }
