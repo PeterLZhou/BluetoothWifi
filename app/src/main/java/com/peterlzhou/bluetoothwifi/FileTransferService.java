@@ -56,6 +56,9 @@ public class FileTransferService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
+        System.out.println("Getting message from internet!");
+
+
         System.out.println("Sending message!");
         Context context = getApplicationContext();
         String host = intent.getExtras().getString(EXTRAS_GROUP_OWNER_ADDRESS);

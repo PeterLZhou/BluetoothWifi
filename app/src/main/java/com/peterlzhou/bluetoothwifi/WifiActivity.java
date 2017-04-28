@@ -147,4 +147,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         FileServerobj.execute();
     }
 
+    public void sendToWeb(){
+
+    }
 }
