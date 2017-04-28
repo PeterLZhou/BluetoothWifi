@@ -69,12 +69,12 @@ public class SendToInternet extends IntentService {
             client.setDoOutput(true);
             client.connect();
             //Create the JSON object
-            JSONObject node = new JSONObject();
+            JSONObject node = WifiActivity.getCurrentJSON();
             //Specify the attributes of the JSON object:
             //pokemonName is a string, latitude and longitude are doubles, captureTime is a long in milliseconds
-            node.put("srcip", intent.getExtras().getString("srcip"));
-            node.put("port", intent.getExtras().getInt("port"));
-            node.put("message", intent.getExtras().getString("message"));
+            node.put("srcip", node.get("destIP"));
+            node.put("port", intent.getExtras().getInt("destPort"));
+            node.put("message", intent.getExtras().getString("body"));
             //This is for debugging purposes
             //System.out.println(node.toString(4));
             //Open up the output stream so we can write our JSON object into the server

@@ -259,7 +259,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         WifiActivity.currentJSON = js;
     }
 
-    public static JSONObject getCurrentJSON(JSONObject js){
+    public static JSONObject getCurrentJSON(){
         return WifiActivity.currentJSON;
     }
 
