@@ -41,19 +41,20 @@ public class SendToInternet extends IntentService {
         super("FileTransferService");
     }
 
-    @Override
+    /*@Override
     public void onCreate() {
         // TODO Auto-generated method stub
         System.out.println("Service started!");
         super.onCreate();
         mHandler = new Handler();
-    }
+    }*/
     /*
      * (non-Javadoc)
      * @see android.app.IntentService#onHandleIntent(android.content.Intent)
      */
     @Override
     protected void onHandleIntent(Intent intent) {
+        System.out.println("Handling Intent");
         HttpURLConnection client = null;
         try {
             URL url = new URL("https://bluetoothwifi.herokuapp.com/ping");

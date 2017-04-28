@@ -64,9 +64,6 @@ public class FileTransferService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
-        System.out.println("Getting message from internet!");
-
-
         System.out.println("Sending message!");
         Context context = getApplicationContext();
         String host = intent.getExtras().getString(EXTRAS_GROUP_OWNER_ADDRESS);
@@ -83,7 +80,7 @@ public class FileTransferService extends IntentService {
             String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
             pack.put("srcIP", ip);
             pack.put("destIP", intent.getExtras().getString("dest_host"));
-            pack.put("destPort", Integer.parseInt(intent.getExtras().getString("dest_port")));
+            pack.put("destPort", intent.getExtras().getInt("dest_port"));
             pack.put("ID", System.currentTimeMillis());
             pack.put("body", message);
             pack.put("ack", false);

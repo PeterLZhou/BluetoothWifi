@@ -109,6 +109,7 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                 e.printStackTrace();
             }
         }
+        System.out.println("String is " + sb.toString());
         return new JSONObject(sb.toString());
     }
 

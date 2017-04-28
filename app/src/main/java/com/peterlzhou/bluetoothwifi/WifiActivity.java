@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static java.sql.Types.NULL;
 
@@ -174,31 +175,36 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
     @Override
     public void onPeersAvailable(WifiP2pDeviceList peerlist) {
-        //System.out.println("Peerlist available");
-        //System.out.println(peerlist);
-        //System.out.println(peerlist.getDeviceList());
-        WifiP2pDevice device = peerlist.getDeviceList().iterator().next();
-        config.deviceAddress = device.deviceAddress;
-        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+        try {
+            //System.out.println("Peerlist available");
+            //System.out.println(peerlist);
+            //System.out.println(peerlist.getDeviceList());
+            WifiP2pDevice device = peerlist.getDeviceList().iterator().next();
+            config.deviceAddress = device.deviceAddress;
+            mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
-            @Override
-            public void onSuccess() {
-                if (USER_TYPE == 0) {
-                    //System.out.println("Server-side code");
-                    //System.out.println(config.deviceAddress);
-                } else if (USER_TYPE == 1) {
-                    System.out.println("Client-side code");
-                } else {
-                    System.out.println("Error");
+                @Override
+                public void onSuccess() {
+                    if (USER_TYPE == 0) {
+                        //System.out.println("Server-side code");
+                        //System.out.println(config.deviceAddress);
+                    } else if (USER_TYPE == 1) {
+                        System.out.println("Client-side code");
+                    } else {
+                        System.out.println("Error");
+                    }
+                    //System.out.println("Successful connection!");
                 }
-                //System.out.println("Successful connection!");
-            }
 
-            @Override
-            public void onFailure(int reason) {
-                System.out.println("Failure with reason " + reason);
-            }
-        });
+                @Override
+                public void onFailure(int reason) {
+                    System.out.println("Failure with reason " + reason);
+                }
+            });
+        }
+        catch (NoSuchElementException e){
+            System.out.println("no next");
+        }
     }
 
     public void sendData(String message, String ip, int port){
@@ -218,8 +224,9 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     public void reachWeb(){
-        Intent serviceIntent = new Intent(this, FileTransferService.class);
-        this.startService(serviceIntent);
+        System.out.println("Sending to web");
+        Intent serviceIntent2 = new Intent(this, SendToInternet.class);
+        this.startService(serviceIntent2);
     }
 
 
