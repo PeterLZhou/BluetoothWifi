@@ -44,6 +44,7 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
             System.out.println("Server met client!");
             InputStream inputstream = client.getInputStream();
             JSONObject response = convertStreamToJSON(inputstream);
+            WifiActivity.setCurrentJSON(response);
             System.out.println("Response is:");
             Iterator<String> iter = response.keys();
             while (iter.hasNext()) {
