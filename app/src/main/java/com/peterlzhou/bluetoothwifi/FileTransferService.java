@@ -30,8 +30,8 @@ import org.json.JSONObject;
  * socket connection with the WiFi Direct Group Owner and writing the file
  */
 public class FileTransferService extends IntentService {
-    private static final String TEMPDESTIP = "0.0.0.0";
-    private static final String TEMPDESTPORT = "8888";
+    // private static final String TEMPDESTIP = "0.0.0.0";
+    // private static final String TEMPDESTPORT = "8888";
     Handler mHandler;
 
     public static final int SOCKET_TIMEOUT = 5000;
@@ -82,8 +82,8 @@ public class FileTransferService extends IntentService {
             WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
             String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
             pack.put("srcIP", ip);
-            pack.put("destIP", TEMPDESTIP);
-            pack.put("destPort", TEMPDESTPORT);
+            pack.put("destIP", intent.getExtras().getString("dest_host"));
+            pack.put("destPort", Integer.parseInt(intent.getExtras().getString("dest_port")));
             pack.put("ID", System.currentTimeMillis());
             pack.put("body", message);
             pack.put("ack", false);

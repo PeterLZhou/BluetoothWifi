@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.json.JSONObject;
@@ -89,12 +90,19 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 new Button.OnClickListener(){
                     @Override
                     public void onClick(View v){
-                        TextView text = (TextView) findViewById(R.id.message);
+                        EditText text = (EditText) findViewById(R.id.message);
+                        EditText ip = (EditText) findViewById(R.id.dest_ip);
+                        EditText port = (EditText) findViewById(R.id.dest_port);
                         String message = text.getText().toString();
                         if (message == ""){
                             message = "Hello World!";
                         }
-                        sendData(message);
+
+                        try{
+                            sendData(message, ip.getText().toString(), Integer.parseInt(port.getText().toString()));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
         );
@@ -172,12 +180,14 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         });
     }
 
-    public void sendData(String message){
+    public void sendData(String message, String ip, int port){
         System.out.println("sendasclient");
         Intent serviceIntent = new Intent(this, FileTransferService.class);
         serviceIntent.putExtra("MESSAGE", message);
         serviceIntent.putExtra("go_host", "172.27.90.60");
         serviceIntent.putExtra("go_port", 8888);
+        serviceIntent.putExtra("dest_host", ip);
+        serviceIntent.putExtra("dest_port", port);
         this.startService(serviceIntent);
     }
 
