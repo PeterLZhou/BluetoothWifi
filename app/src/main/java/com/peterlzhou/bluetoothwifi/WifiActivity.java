@@ -42,8 +42,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private static final String TEMPDESTIP = "0.0.0.0";
     private static final String TEMPDESTPORT = "8888";
     // private String seenMapFile = "seenMapFile";
-    private File seenMapFile = new File("seenMapFile.txt");
-    private HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
+    // private File seenMapFile = new File("seenMapFile.txt");
+    // private HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private List<WifiP2pDevice> peersConnect = new ArrayList<WifiP2pDevice>();
     private ArrayList<String> peersName = new ArrayList<String>();
@@ -128,8 +128,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 }
         );
 
-        loadSeen();
-        cleanSeen();
+        // loadSeen();
+        // cleanSeen();
     }
 
     @Override
@@ -137,8 +137,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
 
-        loadSeen();
-        cleanSeen();
+        // loadSeen();
+        // cleanSeen();
     }
     /* unregister the broadcast receiver */
     @Override
@@ -146,21 +146,21 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         super.onPause();
         unregisterReceiver(mReceiver);
 
-        try {
+        /* try {
             saveSeen();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        try {
+        /* try {
             saveSeen();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        } */
     }
 
     @Override
@@ -213,7 +213,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
 
-    public void addToSeen(String s, Integer i) {
+    /* public void addToSeen(String s, Integer i) {
         seenPacketsMap.put(s, i);
     }
 
@@ -275,7 +275,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    } */
 
     public static void setCurrentJSON(JSONObject js){
         WifiActivity.currentJSON = js;
