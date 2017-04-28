@@ -10,7 +10,6 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -24,12 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOError;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Calendar;
 
 import static java.sql.Types.NULL;
 
@@ -117,6 +112,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     protected void onResume() {
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
+
         loadSeen();
         cleanSeen();
     }
@@ -125,6 +121,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mReceiver);
+
         try {
             saveSeen();
         } catch (IOException e) {
