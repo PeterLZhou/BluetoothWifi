@@ -10,19 +10,33 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOError;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Calendar;
 
 /**
  * Created by peterlzhou on 4/18/17.
  */
 
 public class WifiActivity extends AppCompatActivity implements WifiP2pManager.PeerListListener{
+    private int PACKETSTHRESHOLD = 10000;
+    // private String seenMapFile = "seenMapFile";
+    private File seenMapFile = new File("seenMapFile.txt");
+    private HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private List<WifiP2pDevice> peersConnect = new ArrayList<WifiP2pDevice>();
     private ArrayList<String> peersName = new ArrayList<String>();
@@ -82,18 +96,38 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                     }
                 }
         );
+
+        loadSeen();
+        cleanSeen();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
+        loadSeen();
+        cleanSeen();
     }
     /* unregister the broadcast receiver */
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mReceiver);
+        try {
+            saveSeen();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        try {
+            saveSeen();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -137,6 +171,70 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     public void receiveData(){
         FileServerAsyncTask FileServerobj = new FileServerAsyncTask(this);
         FileServerobj.execute();
+    }
+
+    public void addToSeen(String s, Integer i) {
+        seenPacketsMap.put(s, i);
+    }
+
+    public void cleanSeen() {
+        for(String s: seenPacketsMap.keySet()) {
+            if(Calendar.getInstance().getTimeInMillis() - seenPacketsMap.get(s) > PACKETSTHRESHOLD) {
+                seenPacketsMap.remove(s);
+            }
+        }
+    }
+
+    public boolean checkSeen(String s) {
+        if (seenPacketsMap.keySet().contains(s)) {
+            return true;
+        }
+        return false;
+    }
+
+    public void saveSeen() throws IOException {
+        try {
+            FileOutputStream outStream = new FileOutputStream(seenMapFile);
+            OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
+
+            for (String s : seenPacketsMap.keySet()) {
+                outWriter.append(s);
+                outWriter.append("\n\r");
+                outWriter.append(seenPacketsMap.get(s).toString());
+                outWriter.append("\n\r");
+            }
+
+            outWriter.close();
+            outStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadSeen() {
+        FileInputStream is;
+        BufferedReader reader;
+
+        try {
+            if (seenMapFile.exists()) {
+                cleanSeen();
+                is = new FileInputStream(seenMapFile);
+                reader = new BufferedReader(new InputStreamReader(is));
+                String id = reader.readLine();
+                int time;
+                String temp;
+                while(id != null){
+                    temp = reader.readLine();
+                    if(temp == null) {
+                        break;
+                    }
+                    time = Integer.parseInt(temp);
+                    seenPacketsMap.put(id,time);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
