@@ -87,6 +87,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         });
         Button sendAsClient = (Button) findViewById(R.id.sendstuff);
         Button listenAsServer = (Button) findViewById(R.id.listen);
+        Button sendToInternet = (Button) findViewById(R.id.sendtointernet);
         //Starts the wifi listening section
         sendAsClient.setOnClickListener(
                 new Button.OnClickListener(){
@@ -124,6 +125,14 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                     @Override
                     public void onClick(View v){
                         receiveData();
+                    }
+                }
+        );
+        sendToInternet.setOnClickListener(
+                new Button.OnClickListener(){
+                    @Override
+                    public void onClick(View v){
+                        reachWeb();
                     }
                 }
         );
@@ -209,7 +218,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     public void reachWeb(){
-        System.out.println("placeholder");
+        Intent serviceIntent = new Intent(this, FileTransferService.class);
+        this.startService(serviceIntent);
     }
 
 
@@ -281,7 +291,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         WifiActivity.currentJSON = js;
     }
 
-    public static JSONObject getCurrentJSON(JSONObject js){
+    public static JSONObject getCurrentJSON(){
         return WifiActivity.currentJSON;
     }
 
