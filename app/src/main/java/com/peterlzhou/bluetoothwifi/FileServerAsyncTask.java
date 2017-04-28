@@ -8,6 +8,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Iterator;
 
 /**
  * Created by peterlzhou on 4/20/17.
@@ -39,12 +43,28 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
             Socket client = serverSocket.accept();
             System.out.println("Server met client!");
             InputStream inputstream = client.getInputStream();
-            String response = convertStreamToString(inputstream);
-            System.out.println("RESPONSE IS " + response);
+            JSONObject response = convertStreamToJSON(inputstream);
+            System.out.println("Response is:");
+            Iterator<String> iter = response.keys();
+            while (iter.hasNext()) {
+                String key = iter.next();
+                try {
+                    Object value = response.get(key);
+                    System.out.println(key + ": " + value);
+                } catch (JSONException e) {
+                    // Something went wrong!
+                    e.printStackTrace();
+                }
+            }
+
+            // System.out.println("RESPONSE IS " + response);
             serverSocket.close();
             return "Success!";
         } catch (IOException e) {
             System.out.println("IO EXCEPTION");
+            return null;
+        } catch (JSONException e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -70,7 +90,7 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
         System.out.println("Opening a server socket");
     }
 
-    private String convertStreamToString(InputStream is) {
+    private JSONObject convertStreamToJSON(InputStream is) throws JSONException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
 
@@ -88,7 +108,7 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                 e.printStackTrace();
             }
         }
-        return sb.toString();
+        return new JSONObject(sb.toString());
     }
 
 }

@@ -5,25 +5,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import android.app.IntentService;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A service that process each file transfer request i.e Intent by opening a
  * socket connection with the WiFi Direct Group Owner and writing the file
  */
 public class FileTransferService extends IntentService {
-
+    private static final String TEMPDESTIP = "0.0.0.0";
+    private static final String TEMPDESTPORT = "8888";
     Handler mHandler;
 
     public static final int SOCKET_TIMEOUT = 5000;
@@ -66,13 +74,28 @@ public class FileTransferService extends IntentService {
             socket.bind(null);
             socket.connect((new InetSocketAddress(host, port)), SOCKET_TIMEOUT);
 
-            OutputStream stream = socket.getOutputStream();
+            // Set Packet JSON
+            JSONObject pack = new JSONObject();
+            WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+            String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+            pack.put("srcIP", ip);
+            pack.put("destIP", TEMPDESTIP);
+            pack.put("destPort", TEMPDESTPORT);
+            pack.put("ID", System.currentTimeMillis());
+            pack.put("body", message);
+            pack.put("ack", false);
+
+            OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
+            out.write(pack.toString());
+            /*OutputStream stream = socket.getOutputStream();
             stream.write(message.getBytes(Charset.forName("UTF-8")));
-            stream.close();
+            stream.close();*/
         } catch (IOException e) {
             System.out.println(e.getMessage());
             //e.printStackTrace();
             //CommonMethods.e("Unable to connect host", "service socket error in wififiletransferservice class");
+        } catch (JSONException e) {
+            e.printStackTrace();
         } finally {
             if (socket != null) {
                 if (socket.isConnected()) {

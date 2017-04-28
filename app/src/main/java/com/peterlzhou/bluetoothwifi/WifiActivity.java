@@ -15,6 +15,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,6 +50,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     WifiP2pManager mManager;
     BroadcastReceiver mReceiver;
     WifiP2pConfig config = new WifiP2pConfig();
+
+    private static JSONObject currentJSON = new JSONObject();
 
     int USER_TYPE;
     WifiP2pManager.PeerListListener mPeerListListener;
@@ -243,6 +247,14 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void setCurrentJSON(JSONObject js){
+        WifiActivity.currentJSON = js;
+    }
+
+    public static JSONObject getCurrentJSON(JSONObject js){
+        return WifiActivity.currentJSON;
     }
 
 }
