@@ -17,19 +17,19 @@
 
     <EditText
         android:id="@+id/message"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="300px"
+        android:layout_height="100px"
         android:text="Write a message here" />
 
     <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="300px"
+        android:layout_height="100px"
         android:id="@+id/dest_ip"
         android:hint="Destination IP" />
 
     <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="300px"
+        android:layout_height="100px"
         android:id="@+id/dest_port"
         android:hint="Destination Port" />
 </LinearLayout>
