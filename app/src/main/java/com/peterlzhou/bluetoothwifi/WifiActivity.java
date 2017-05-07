@@ -29,6 +29,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -44,6 +45,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private static final String TEMPDESTPORT = "8888";
     private String seenMapFile = "seenMapFile";
     // private File seenMapFile = new File("seenMapFile.txt");
+    //Maps packet ID to tuple<source ip, source port, dest ip, dest port, timestamp>
     private HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
 
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
@@ -183,31 +185,35 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             //System.out.println("Peerlist available");
             //System.out.println(peerlist);
             //System.out.println(peerlist.getDeviceList());
-            WifiP2pDevice device = peerlist.getDeviceList().iterator().next();
-            config.deviceAddress = device.deviceAddress;
-            mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+            Iterator<WifiP2pDevice> mIterator = peerlist.getDeviceList().iterator();
+            WifiP2pDevice device;
+            while (mIterator.hasNext()) {
+                device = mIterator.next();
+                config.deviceAddress = device.deviceAddress;
+                mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
-                @Override
-                public void onSuccess() {
-                    if (USER_TYPE == 0) {
-                        //System.out.println("Server-side code");
-                        //System.out.println(config.deviceAddress);
-                    } else if (USER_TYPE == 1) {
-                        System.out.println("Client-side code");
-                    } else {
-                        System.out.println("Error");
+                    @Override
+                    public void onSuccess() {
+                        if (USER_TYPE == 0) {
+                            //System.out.println("Server-side code");
+                            //System.out.println(config.deviceAddress);
+                        } else if (USER_TYPE == 1) {
+                            System.out.println("Client-side code");
+                        } else {
+                            System.out.println("Error");
+                        }
+                        //System.out.println("Successful connection!");
                     }
-                    //System.out.println("Successful connection!");
-                }
 
-                @Override
-                public void onFailure(int reason) {
-                    System.out.println("Failure with reason " + reason);
-                }
-            });
+                    @Override
+                    public void onFailure(int reason) {
+                        System.out.println("Failure with reason " + reason);
+                    }
+                });
+            }
         }
         catch (NoSuchElementException e){
-            System.out.println("no next");
+            System.out.println(e);
         }
     }
 
@@ -215,7 +221,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         System.out.println("sendasclient");
         Intent serviceIntent = new Intent(this, FileTransferService.class);
         serviceIntent.putExtra("MESSAGE", message);
-        serviceIntent.putExtra("go_host", "172.27.90.60");
+        serviceIntent.putExtra("go_host", "172.27.83.183");
         serviceIntent.putExtra("go_port", 8888);
         serviceIntent.putExtra("dest_host", ip);
         serviceIntent.putExtra("dest_port", port);
@@ -240,7 +246,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
     public void cleanSeen() {
         for(String s: seenPacketsMap.keySet()) {
-            if(Calendar.getInstance().getTimeInMillis() - se    enPacketsMap.get(s) > PACKETSTHRESHOLD) {
+            if(Calendar.getInstance().getTimeInMillis() - seenPacketsMap.get(s) > PACKETSTHRESHOLD) {
                 seenPacketsMap.remove(s);
             }
         }

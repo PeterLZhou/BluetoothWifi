@@ -58,14 +58,13 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                 }
             }
             if (response.getBoolean("ack")== true){
-                System.out.println("This is a packet we need to send");
                 serverSocket.close();
-                return "Success";
+                return "Ack";
             }
             else{
                 System.out.println("This is a response");
                 serverSocket.close();
-                return "Response";
+                return "Packet";
             }
 
         } catch (IOException e) {
@@ -84,12 +83,13 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
     @Override
     protected void onPostExecute(String result) {
         //Send packet to the server
-        if (result == "Success") {
-            System.out.println("Sendshit");
-
+        if (result == "Ack") {
+            System.out.println("Ack protocol");
+            backPropagate();
         }
         else if (result == "Response"){
-            System.out.println("Response protocol");
+            System.out.println("Sender protocol");
+            forwardPropagate();
         }
         else if (result == "Response"){
             System.out.println("Error");
@@ -128,4 +128,15 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
         return new JSONObject(sb.toString());
     }
 
+    public void backPropagate(){
+        System.out.println("help");
+    }
+
+    public void forwardPropagate(){
+        System.out.println("help");
+    }
+
 }
+
+
+
