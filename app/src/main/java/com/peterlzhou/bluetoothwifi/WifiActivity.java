@@ -240,8 +240,10 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
 
-    public void addToSeen(String s, Integer i) {
+    public static void addToSeen(String s, Integer i) {
         seenPacketsMap.put(s, i);
+
+        System.out.println("Added " + s + ":" + i + " to packet map");
     }
 
     public void cleanSeen() {
@@ -249,6 +251,11 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             if(Calendar.getInstance().getTimeInMillis() - seenPacketsMap.get(s) > PACKETSTHRESHOLD) {
                 seenPacketsMap.remove(s);
             }
+        }
+
+        System.out.println("Packet Map Cleaned");
+        for (String s : seenPacketsMap.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
         }
     }
 
@@ -276,6 +283,11 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        System.out.println("Packet Map Saved");
+        for (String s : seenPacketsMap.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
+        }
     }
 
     public void loadSeen() {
@@ -298,6 +310,11 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 seenPacketsMap.put(id,time);
             }
             is.close();
+
+            System.out.println("Packet Map Loaded");
+            for (String s : seenPacketsMap.keySet()) {
+                System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

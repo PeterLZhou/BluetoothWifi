@@ -47,9 +47,17 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
             WifiActivity.setCurrentJSON(response);
             System.out.println("Response is:");
             Iterator<String> iter = response.keys();
+            String packet_host = null;
+            int packet_port = -1;
             while (iter.hasNext()) {
                 String key = iter.next();
                 try {
+                    if (key.equals("go_host")) {
+                        packet_host = (String) response.get(key);
+                    } else if(key.equals("go_port")) {
+                        packet_port = (int) response.get(key);
+                    }
+
                     Object value = response.get(key);
                     System.out.println(key + ": " + value);
                 } catch (JSONException e) {
