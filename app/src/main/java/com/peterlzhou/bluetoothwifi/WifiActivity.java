@@ -236,7 +236,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
     public void cleanSeen() {
         for(String s: seenPacketsMap.keySet()) {
-            if(Calendar.getInstance().getTimeInMillis() - seenPacketsMap.get(s) > PACKETSTHRESHOLD) {
+            if(Calendar.getInstance().getTimeInMillis() - se    enPacketsMap.get(s) > PACKETSTHRESHOLD) {
                 seenPacketsMap.remove(s);
             }
         }

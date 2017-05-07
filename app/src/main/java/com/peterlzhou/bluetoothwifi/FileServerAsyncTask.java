@@ -57,10 +57,17 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                     e.printStackTrace();
                 }
             }
+            if (response.getBoolean("ack")== true){
+                System.out.println("This is a packet we need to send");
+                serverSocket.close();
+                return "Success";
+            }
+            else{
+                System.out.println("This is a response");
+                serverSocket.close();
+                return "Response";
+            }
 
-            // System.out.println("RESPONSE IS " + response);
-            serverSocket.close();
-            return "Success!";
         } catch (IOException e) {
             System.out.println("IO EXCEPTION");
             return null;
@@ -76,8 +83,16 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
      */
     @Override
     protected void onPostExecute(String result) {
-        if (result != null) {
-            System.out.println("Message transferred!");
+        //Send packet to the server
+        if (result == "Success") {
+            System.out.println("Sendshit");
+
+        }
+        else if (result == "Response"){
+            System.out.println("Response protocol");
+        }
+        else if (result == "Response"){
+            System.out.println("Error");
         }
 
     }
