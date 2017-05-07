@@ -42,9 +42,10 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private int PACKETSTHRESHOLD = 10000;
     private static final String TEMPDESTIP = "0.0.0.0";
     private static final String TEMPDESTPORT = "8888";
-    // private String seenMapFile = "seenMapFile";
+    private String seenMapFile = "seenMapFile";
     // private File seenMapFile = new File("seenMapFile.txt");
-    // private HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
+    private HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
+
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private List<WifiP2pDevice> peersConnect = new ArrayList<WifiP2pDevice>();
     private ArrayList<String> peersName = new ArrayList<String>();
@@ -58,6 +59,9 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
     int USER_TYPE;
     WifiP2pManager.PeerListListener mPeerListListener;
+
+    public WifiActivity() throws FileNotFoundException {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -138,8 +142,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 }
         );
 
-        // loadSeen();
-        // cleanSeen();
+        loadSeen();
+        cleanSeen();
     }
 
     @Override
@@ -147,8 +151,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
 
-        // loadSeen();
-        // cleanSeen();
+        loadSeen();
+        cleanSeen();
     }
     /* unregister the broadcast receiver */
     @Override
@@ -156,21 +160,21 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         super.onPause();
         unregisterReceiver(mReceiver);
 
-        /* try {
+        try {
             saveSeen();
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        /* try {
+        try {
             saveSeen();
         } catch (IOException e) {
             e.printStackTrace();
-        } */
+        }
     }
 
     @Override
@@ -230,7 +234,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
 
-    /* public void addToSeen(String s, Integer i) {
+    public void addToSeen(String s, Integer i) {
         seenPacketsMap.put(s, i);
     }
 
@@ -251,7 +255,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
     public void saveSeen() throws IOException {
         try {
-            FileOutputStream outStream = new FileOutputStream(seenMapFile);
+            FileOutputStream outStream = openFileOutput(seenMapFile, Context.MODE_PRIVATE);
             OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
 
             for (String s : seenPacketsMap.keySet()) {
@@ -269,30 +273,29 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     public void loadSeen() {
-        FileInputStream is;
-        BufferedReader reader;
-
         try {
-            if (seenMapFile.exists()) {
-                cleanSeen();
-                is = new FileInputStream(seenMapFile);
-                reader = new BufferedReader(new InputStreamReader(is));
-                String id = reader.readLine();
-                int time;
-                String temp;
-                while(id != null){
-                    temp = reader.readLine();
-                    if(temp == null) {
-                        break;
-                    }
-                    time = Integer.parseInt(temp);
-                    seenPacketsMap.put(id,time);
+            FileInputStream is = openFileInput(seenMapFile);
+            BufferedReader reader;
+
+            cleanSeen();
+            is = new FileInputStream(seenMapFile);
+            reader = new BufferedReader(new InputStreamReader(is));
+            String id = reader.readLine();
+            int time;
+            String temp;
+            while(id != null){
+                temp = reader.readLine();
+                if(temp == null) {
+                    break;
                 }
+                time = Integer.parseInt(temp);
+                seenPacketsMap.put(id,time);
             }
+            is.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    } */
+    }
 
     public static void setCurrentJSON(JSONObject js){
         WifiActivity.currentJSON = js;
