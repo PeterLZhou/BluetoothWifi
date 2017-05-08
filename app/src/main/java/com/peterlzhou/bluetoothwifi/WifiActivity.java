@@ -585,6 +585,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     public void sendBufferedPackets() throws JSONException {
         cleanSent();
 
+        // Check un-ack'd packet map and send anything that still needs to be sent
         for (String s : sentWaitingAckMap.keySet()) {
             sendData((String) sentWaitingAckMap.get(s).first.get("body"),
                     (String) sentWaitingAckMap.get(s).first.get("destIP"),
