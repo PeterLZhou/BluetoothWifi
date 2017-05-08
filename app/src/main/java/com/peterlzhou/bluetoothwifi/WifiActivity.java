@@ -46,7 +46,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private String seenMapFile = "seenMapFile";
     // private File seenMapFile = new File("seenMapFile.txt");
     //Maps packet ID to tuple<source ip, source port, dest ip, dest port, timestamp>
-    private HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
+    private static HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
 
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private List<WifiP2pDevice> peersConnect = new ArrayList<WifiP2pDevice>();
@@ -241,7 +241,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
 
     public static void addToSeen(String s, Integer i) {
-        seenPacketsMap.put(s, i);
+        WifiActivity.seenPacketsMap.put(s, i);
 
         System.out.println("Added " + s + ":" + i + " to packet map");
     }
