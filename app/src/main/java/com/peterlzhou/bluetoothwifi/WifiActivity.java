@@ -10,6 +10,7 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,17 +46,23 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private static final String TEMPDESTPORT = "8888";
     private String NATFile = "NATFile";
 
-    //Maps packet ID to tuple<source ip, source port, dest ip, dest port, timestamp>
-    private static HashMap<String, Integer> NAT = new HashMap<String, Integer>();
+    // Maps packet ID to tuple<source ip, source port, dest ip, dest port, timestamp>
+    private static HashMap<String, Pair<Integer, Long>> NAT = new HashMap<String, Pair<Integer, Long>>();
 
+    // List of all peers, connected peers, and names of peers
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private List<WifiP2pDevice> peersConnect = new ArrayList<WifiP2pDevice>();
     private ArrayList<String> peersName = new ArrayList<String>();
+
     private final IntentFilter mIntentFilter = new IntentFilter();
     WifiP2pManager.Channel mChannel;
     WifiP2pManager mManager;
     BroadcastReceiver mReceiver;
     WifiP2pConfig config = new WifiP2pConfig();
+
+    private String uniqueFile = "uniqueFile";
+    // Used by Device C to receive only 1 of every packet
+    private static HashMap<String, Long> uniquePacketsMap = new HashMap<String, Long>();
 
     private static JSONObject currentJSON = new JSONObject();
 
@@ -146,6 +153,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
         loadNAT();
         cleanNAT();
+        loadUnique();
+        cleanUnique();
     }
 
     @Override
@@ -155,6 +164,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
         loadNAT();
         cleanNAT();
+        loadUnique();
+        cleanUnique();
     }
     /* unregister the broadcast receiver */
     @Override
@@ -164,6 +175,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
         try {
             saveNAT();
+            saveUnique();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -174,6 +186,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         super.onStop();
         try {
             saveNAT();
+            saveUnique();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -241,14 +254,27 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
 
     public static void addToNAT(String s, Integer i) {
-        WifiActivity.NAT.put(s, i);
+        WifiActivity.NAT.put(s, new Pair<Integer, Long>(i, Calendar.getInstance().getTimeInMillis()));
 
         System.out.println("Added " + s + ":" + i + " to NAT map");
     }
 
+    public void cleanUnique() {
+        for(String s: uniquePacketsMap.keySet()) {
+            if(Calendar.getInstance().getTimeInMillis() - uniquePacketsMap.get(s) > PACKETSTHRESHOLD) {
+                uniquePacketsMap.remove(s);
+            }
+        }
+
+        System.out.println("uniquePacketsMap Map Cleaned");
+        for (String s : uniquePacketsMap.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + uniquePacketsMap.get(s));
+        }
+    }
+
     public void cleanNAT() {
         for(String s: NAT.keySet()) {
-            if(Calendar.getInstance().getTimeInMillis() - NAT.get(s) > PACKETSTHRESHOLD) {
+            if(Calendar.getInstance().getTimeInMillis() - NAT.get(s).second > PACKETSTHRESHOLD) {
                 NAT.remove(s);
             }
         }
@@ -274,7 +300,9 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             for (String s : NAT.keySet()) {
                 outWriter.append(s);
                 outWriter.append("\n\r");
-                outWriter.append(NAT.get(s).toString());
+                outWriter.append(NAT.get(s).first.toString());
+                outWriter.append("\n\r");
+                outWriter.append(NAT.get(s).second.toString());
                 outWriter.append("\n\r");
             }
 
@@ -290,6 +318,30 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         }
     }
 
+    public void saveUnique() throws IOException {
+        try {
+            FileOutputStream outStream = openFileOutput(uniqueFile, Context.MODE_PRIVATE);
+            OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
+
+            for (String s : uniquePacketsMap.keySet()) {
+                outWriter.append(s);
+                outWriter.append("\n\r");
+                outWriter.append(uniquePacketsMap.get(s).toString());
+                outWriter.append("\n\r");
+            }
+
+            outWriter.close();
+            outStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Unique Map Saved");
+        for (String s : uniquePacketsMap.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + uniquePacketsMap.get(s));
+        }
+    }
+
     public void loadNAT() {
         try {
             FileInputStream is = openFileInput(NATFile);
@@ -299,15 +351,23 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             is = new FileInputStream(NATFile);
             reader = new BufferedReader(new InputStreamReader(is));
             String id = reader.readLine();
-            int time;
-            String temp;
+            int port;
+            String tempPort;
+            long time;
+            String tempTime;
             while(id != null){
-                temp = reader.readLine();
-                if(temp == null) {
+                tempPort = reader.readLine();
+                if(tempPort == null) {
                     break;
                 }
-                time = Integer.parseInt(temp);
-                NAT.put(id,time);
+                port = Integer.parseInt(tempPort);
+
+                tempTime = reader.readLine();
+                if(tempTime == null) {
+                    break;
+                }
+                time = Long.parseLong(tempTime);
+                NAT.put(id,new Pair<Integer, Long>(port, time));
             }
             is.close();
 
@@ -318,6 +378,50 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void loadUnique() {
+        try {
+            FileInputStream is = openFileInput(uniqueFile);
+            BufferedReader reader;
+
+            cleanUnique();
+            is = new FileInputStream(uniqueFile);
+            reader = new BufferedReader(new InputStreamReader(is));
+            String id = reader.readLine();
+            long time;
+            String temp;
+            while(id != null){
+                temp = reader.readLine();
+                if(temp == null) {
+                    break;
+                }
+                time = Long.parseLong(temp);
+                uniquePacketsMap.put(id,time);
+            }
+            is.close();
+
+            System.out.println("uniquePacketsMap Map Loaded");
+            for (String s : uniquePacketsMap.keySet()) {
+                System.out.println("Key: " + s + ", Value: " + uniquePacketsMap.get(s));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*
+     * Adds the values to unique packets map if the string is not already an id in the map.
+     * Return true if value added.
+     * Otherwise, return false.
+     */
+    public static boolean addToUniquePacketsIfNot(String s, Long l) {
+        if (WifiActivity.uniquePacketsMap.keySet().contains(s)) {
+            return false;
+        }
+
+        WifiActivity.uniquePacketsMap.put(s,l);
+        return true;
     }
 
     public static void setCurrentJSON(JSONObject js){
