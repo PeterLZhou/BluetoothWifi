@@ -48,14 +48,15 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
             System.out.println("Response is:");
             Iterator<String> iter = response.keys();
             String packet_host = null;
-            int packet_port = -1;
+
+            String packetID = null;
             while (iter.hasNext()) {
                 String key = iter.next();
                 try {
-                    if (key.equals("go_host")) {
+                    if (key.equals("srcIP")) {
                         packet_host = (String) response.get(key);
-                    } else if(key.equals("go_port")) {
-                        packet_port = (int) response.get(key);
+                    } else if(key.equals("ID")) {
+                        packetID = (String) response.get(key);
                     }
 
                     Object value = response.get(key);
@@ -65,6 +66,15 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                     e.printStackTrace();
                 }
             }
+
+            if (packet_host != null) {
+                WifiActivity.addToNAT(packetID, packet_host);
+            }
+
+            if (packetID != null) {
+                WifiActivity.addToUniquePacketsIfNot(packetID, System.currentTimeMillis());
+            }
+
             if (response.getBoolean("ack")== true){
                 serverSocket.close();
                 return "Ack";

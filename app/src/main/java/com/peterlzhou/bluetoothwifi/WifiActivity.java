@@ -10,6 +10,7 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -43,19 +44,25 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private int PACKETSTHRESHOLD = 10000;
     private static final String TEMPDESTIP = "0.0.0.0";
     private static final String TEMPDESTPORT = "8888";
-    private String seenMapFile = "seenMapFile";
-    // private File seenMapFile = new File("seenMapFile.txt");
-    //Maps packet ID to tuple<source ip, source port, dest ip, dest port, timestamp>
-    private static HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
+    private String NATFile = "NATFile";
 
+    // Maps packet ID to tuple<source ip, timestamp>
+    private static HashMap<String, Pair<String, Long>> NAT = new HashMap<String, Pair<String, Long>>();
+
+    // List of all peers, connected peers, and names of peers
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private List<WifiP2pDevice> peersConnect = new ArrayList<WifiP2pDevice>();
     private ArrayList<String> peersName = new ArrayList<String>();
+
     private final IntentFilter mIntentFilter = new IntentFilter();
     WifiP2pManager.Channel mChannel;
     WifiP2pManager mManager;
     BroadcastReceiver mReceiver;
     WifiP2pConfig config = new WifiP2pConfig();
+
+    private String uniqueFile = "uniqueFile";
+    // Used by Device C to receive only 1 of every packet
+    private static HashMap<String, Long> uniquePacketsMap = new HashMap<String, Long>();
 
     private static JSONObject currentJSON = new JSONObject();
 
@@ -144,8 +151,10 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 }
         );
 
-        loadSeen();
-        cleanSeen();
+        loadNAT();
+        cleanNAT();
+        loadUnique();
+        cleanUnique();
     }
 
     @Override
@@ -153,8 +162,10 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
 
-        loadSeen();
-        cleanSeen();
+        loadNAT();
+        cleanNAT();
+        loadUnique();
+        cleanUnique();
     }
     /* unregister the broadcast receiver */
     @Override
@@ -163,7 +174,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         unregisterReceiver(mReceiver);
 
         try {
-            saveSeen();
+            saveNAT();
+            saveUnique();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -173,7 +185,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     protected void onStop() {
         super.onStop();
         try {
-            saveSeen();
+            saveNAT();
+            saveUnique();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -241,41 +254,56 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
 
-    public static void addToSeen(String s, Integer i) {
-        seenPacketsMap.put(s, i);
+    public static void addToNAT(String s, String i) {
+        WifiActivity.NAT.put(s, new Pair<String, Long>(i, Calendar.getInstance().getTimeInMillis()));
 
-        System.out.println("Added " + s + ":" + i + " to packet map");
+        System.out.println("Added " + s + ":" + i + " to NAT map");
     }
 
-    public void cleanSeen() {
-        for(String s: seenPacketsMap.keySet()) {
-            if(Calendar.getInstance().getTimeInMillis() - seenPacketsMap.get(s) > PACKETSTHRESHOLD) {
-                seenPacketsMap.remove(s);
+    public void cleanUnique() {
+        for(String s: uniquePacketsMap.keySet()) {
+            if(Calendar.getInstance().getTimeInMillis() - uniquePacketsMap.get(s) > PACKETSTHRESHOLD) {
+                uniquePacketsMap.remove(s);
             }
         }
 
-        System.out.println("Packet Map Cleaned");
-        for (String s : seenPacketsMap.keySet()) {
-            System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
+        System.out.println("uniquePacketsMap Map Cleaned");
+        for (String s : uniquePacketsMap.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + uniquePacketsMap.get(s));
         }
     }
 
-    public boolean checkSeen(String s) {
-        if (seenPacketsMap.keySet().contains(s)) {
+    public void cleanNAT() {
+        for(String s: NAT.keySet()) {
+            if(Calendar.getInstance().getTimeInMillis() - NAT.get(s).second > PACKETSTHRESHOLD) {
+                NAT.remove(s);
+            }
+        }
+
+        System.out.println("NAT Map Cleaned");
+        for (String s : NAT.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + NAT.get(s));
+        }
+    }
+
+    public boolean checkNAT(String s) {
+        if (NAT.keySet().contains(s)) {
             return true;
         }
         return false;
     }
 
-    public void saveSeen() throws IOException {
+    public void saveNAT() throws IOException {
         try {
-            FileOutputStream outStream = openFileOutput(seenMapFile, Context.MODE_PRIVATE);
+            FileOutputStream outStream = openFileOutput(NATFile, Context.MODE_PRIVATE);
             OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
 
-            for (String s : seenPacketsMap.keySet()) {
+            for (String s : NAT.keySet()) {
                 outWriter.append(s);
                 outWriter.append("\n\r");
-                outWriter.append(seenPacketsMap.get(s).toString());
+                outWriter.append(NAT.get(s).first.toString());
+                outWriter.append("\n\r");
+                outWriter.append(NAT.get(s).second.toString());
                 outWriter.append("\n\r");
             }
 
@@ -285,40 +313,115 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             e.printStackTrace();
         }
 
-        System.out.println("Packet Map Saved");
-        for (String s : seenPacketsMap.keySet()) {
-            System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
+        System.out.println("NAT Map Saved");
+        for (String s : NAT.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + NAT.get(s));
         }
     }
 
-    public void loadSeen() {
+    public void saveUnique() throws IOException {
         try {
-            FileInputStream is = openFileInput(seenMapFile);
+            FileOutputStream outStream = openFileOutput(uniqueFile, Context.MODE_PRIVATE);
+            OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
+
+            for (String s : uniquePacketsMap.keySet()) {
+                outWriter.append(s);
+                outWriter.append("\n\r");
+                outWriter.append(uniquePacketsMap.get(s).toString());
+                outWriter.append("\n\r");
+            }
+
+            outWriter.close();
+            outStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Unique Map Saved");
+        for (String s : uniquePacketsMap.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + uniquePacketsMap.get(s));
+        }
+    }
+
+    public void loadNAT() {
+        try {
+            FileInputStream is = openFileInput(NATFile);
             BufferedReader reader;
 
-            cleanSeen();
-            is = new FileInputStream(seenMapFile);
+            cleanNAT();
+            is = new FileInputStream(NATFile);
             reader = new BufferedReader(new InputStreamReader(is));
             String id = reader.readLine();
-            int time;
+            String host;
+            long time;
+            String tempTime;
+            while(id != null){
+                host = reader.readLine();
+                if(host == null) {
+                    break;
+                }
+
+                tempTime = reader.readLine();
+                if(tempTime == null) {
+                    break;
+                }
+                time = Long.parseLong(tempTime);
+
+                NAT.put(id,new Pair<String, Long>(host, time));
+            }
+            is.close();
+
+            System.out.println("NAT Map Loaded");
+            for (String s : NAT.keySet()) {
+                System.out.println("Key: " + s + ", Value: " + NAT.get(s));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadUnique() {
+        try {
+            FileInputStream is = openFileInput(uniqueFile);
+            BufferedReader reader;
+
+            cleanUnique();
+            is = new FileInputStream(uniqueFile);
+            reader = new BufferedReader(new InputStreamReader(is));
+            String id = reader.readLine();
+            long time;
             String temp;
             while(id != null){
                 temp = reader.readLine();
                 if(temp == null) {
                     break;
                 }
-                time = Integer.parseInt(temp);
-                seenPacketsMap.put(id,time);
+                time = Long.parseLong(temp);
+                uniquePacketsMap.put(id,time);
             }
             is.close();
 
-            System.out.println("Packet Map Loaded");
-            for (String s : seenPacketsMap.keySet()) {
-                System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
+            System.out.println("uniquePacketsMap Map Loaded");
+            for (String s : uniquePacketsMap.keySet()) {
+                System.out.println("Key: " + s + ", Value: " + uniquePacketsMap.get(s));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /*
+     * Adds the values to unique packets map if the string is not already an id in the map.
+     * Return true if value added.
+     * Otherwise, return false.
+     */
+    public static boolean addToUniquePacketsIfNot(String s, Long l) {
+        if (WifiActivity.uniquePacketsMap.keySet().contains(s)) {
+            return false;
+        }
+
+        WifiActivity.uniquePacketsMap.put(s,l);
+        return true;
     }
 
     public static void setCurrentJSON(JSONObject js){
