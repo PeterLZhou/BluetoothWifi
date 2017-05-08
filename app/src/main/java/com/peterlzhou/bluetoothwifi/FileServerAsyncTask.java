@@ -48,7 +48,6 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
             System.out.println("Response is:");
             Iterator<String> iter = response.keys();
             String packet_host = null;
-            int packet_port = -1;
 
             String packetID = null;
             while (iter.hasNext()) {
@@ -56,8 +55,6 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                 try {
                     if (key.equals("srcIP")) {
                         packet_host = (String) response.get(key);
-                    } else if(key.equals("destPort")) {
-                        packet_port = (int) response.get(key);
                     } else if(key.equals("ID")) {
                         packetID = (String) response.get(key);
                     }
@@ -70,8 +67,8 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                 }
             }
 
-            if (packet_host != null && packet_port != -1) {
-                WifiActivity.addToNAT(packet_host, packet_port);
+            if (packet_host != null) {
+                WifiActivity.addToNAT(packetID, packet_host);
             }
 
             if (packetID != null) {

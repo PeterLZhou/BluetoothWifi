@@ -46,8 +46,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private static final String TEMPDESTPORT = "8888";
     private String NATFile = "NATFile";
 
-    // Maps packet ID to tuple<source ip, source port, dest ip, dest port, timestamp>
-    private static HashMap<String, Pair<Integer, Long>> NAT = new HashMap<String, Pair<Integer, Long>>();
+    // Maps packet ID to tuple<source ip, timestamp>
+    private static HashMap<String, Pair<String, Long>> NAT = new HashMap<String, Pair<String, Long>>();
 
     // List of all peers, connected peers, and names of peers
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
@@ -253,8 +253,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
 
-    public static void addToNAT(String s, Integer i) {
-        WifiActivity.NAT.put(s, new Pair<Integer, Long>(i, Calendar.getInstance().getTimeInMillis()));
+    public static void addToNAT(String s, String i) {
+        WifiActivity.NAT.put(s, new Pair<String, Long>(i, Calendar.getInstance().getTimeInMillis()));
 
         System.out.println("Added " + s + ":" + i + " to NAT map");
     }
@@ -351,23 +351,22 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             is = new FileInputStream(NATFile);
             reader = new BufferedReader(new InputStreamReader(is));
             String id = reader.readLine();
-            int port;
-            String tempPort;
+            String host;
             long time;
             String tempTime;
             while(id != null){
-                tempPort = reader.readLine();
-                if(tempPort == null) {
+                host = reader.readLine();
+                if(host == null) {
                     break;
                 }
-                port = Integer.parseInt(tempPort);
 
                 tempTime = reader.readLine();
                 if(tempTime == null) {
                     break;
                 }
                 time = Long.parseLong(tempTime);
-                NAT.put(id,new Pair<Integer, Long>(port, time));
+
+                NAT.put(id,new Pair<String, Long>(host, time));
             }
             is.close();
 
