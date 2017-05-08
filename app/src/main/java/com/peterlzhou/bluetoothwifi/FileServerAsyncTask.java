@@ -54,9 +54,9 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                 String key = iter.next();
                 try {
                     if (key.equals("srcIP")) {
-                        packet_host = (String) response.get(key);
+                        packet_host = response.get(key).toString();
                     } else if(key.equals("ID")) {
-                        packetID = (String) response.get(key);
+                        packetID = response.get(key).toString();
                     }
 
                     Object value = response.get(key);
@@ -76,13 +76,18 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
             }
 
             if (response.getBoolean("ack")== true){
+                //Removes the element from the ack table
+                if (WifiActivity.sentWaitingAckMap.get(response.getString("ID")) != null){
+                    WifiActivity.sentWaitingAckMap.remove(response.getString("ID"));
+                    System.out.println("Ack received, packet no longer waiting for ack!");
+                }
                 serverSocket.close();
-                return "Ack";
+                return "ack";
             }
             else{
                 System.out.println("This is a response");
                 serverSocket.close();
-                return "Packet";
+                return "packet";
             }
 
         } catch (IOException e) {
@@ -101,13 +106,14 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
     @Override
     protected void onPostExecute(String result) {
         //Send packet to the server
-        if (result == "Ack") {
+        if (result == "ack") {
             System.out.println("Ack protocol");
             backPropagate();
         }
-        else if (result == "Response"){
+        else if (result == "packet"){
             System.out.println("Sender protocol");
             forwardPropagate();
+            //TODO: Add object to
         }
         else if (result == "Response"){
             System.out.println("Error");
@@ -147,7 +153,9 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
     }
 
     public void backPropagate(){
+
         System.out.println("help");
+        //TODO: For every ip in our local available devices, call WifiActivity.sendData with ack = true
     }
 
     public void forwardPropagate(){

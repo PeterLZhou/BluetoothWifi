@@ -34,6 +34,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static java.sql.Types.NULL;
 
@@ -67,7 +70,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
     private String sentWaitingAckFile = "sentWaitingAckFile"; // File to store the unique packets map into
     // Used by Device A to track which packets are sent but awaiting Acks
-    private static HashMap<String, Pair<JSONObject, Long>> sentWaitingAckMap = new HashMap<String, Pair<JSONObject, Long>>();
+    public static HashMap<String, Pair<JSONObject, Long>> sentWaitingAckMap = new HashMap<String, Pair<JSONObject, Long>>();
 
     private static JSONObject currentJSON = new JSONObject();
 
@@ -107,6 +110,18 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             }
         });
 
+        //Schedules cleanup every 10 seconds
+        ScheduledExecutorService scheduler =
+                Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate
+                (new Runnable() {
+                    public void run() {
+                        cleanNAT();
+                        cleanUnique();
+                        cleanSent();
+                    }
+                }, 0, 10, TimeUnit.SECONDS);
+
         // Buttons to determine action
         Button sendAsClient = (Button) findViewById(R.id.sendstuff);
         Button listenAsServer = (Button) findViewById(R.id.listen);
@@ -138,7 +153,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
                         // Send intended message to WiFi Direct server
                         try{
-                            sendData(message, ipText, Integer.parseInt(portText));
+                            long pack_id = System.currentTimeMillis();
+                            sendData(message, ipText, Integer.parseInt(portText), false, pack_id);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -251,7 +267,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         }
     }
 
-    public void sendData(String message, String ip, int port){
+    public void sendData(String message, String ip, int port, boolean ack, long pack_id){
         System.out.println("sendasclient");
 
         // Give the necessary data to FileTransferService to send to the WiFi Direct Recipient
@@ -262,6 +278,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         serviceIntent.putExtra("go_port", 8888);
         serviceIntent.putExtra("dest_host", ip);
         serviceIntent.putExtra("dest_port", port);
+        serviceIntent.putExtra("ack", ack);
+        serviceIntent.putExtra("pack_id", pack_id);
         this.startService(serviceIntent);
     }
 
@@ -566,7 +584,9 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         for (String s : sentWaitingAckMap.keySet()) {
             sendData((String) sentWaitingAckMap.get(s).first.get("body"),
                     (String) sentWaitingAckMap.get(s).first.get("destIP"),
-                    (Integer) sentWaitingAckMap.get(s).first.get("destPort"));
+                    (Integer) sentWaitingAckMap.get(s).first.get("destPort"),
+                    (Boolean) sentWaitingAckMap.get(s).first.get("ack"),
+                    (Long) sentWaitingAckMap.get(s).first.get("ID"));
         }
     }
 
