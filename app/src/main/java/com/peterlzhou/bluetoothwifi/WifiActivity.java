@@ -560,6 +560,16 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         }
     }
 
+    public void sendBufferedPackets() throws JSONException {
+        cleanSent();
+
+        for (String s : sentWaitingAckMap.keySet()) {
+            sendData((String) sentWaitingAckMap.get(s).first.get("body"),
+                    (String) sentWaitingAckMap.get(s).first.get("destIP"),
+                    (Integer) sentWaitingAckMap.get(s).first.get("destPort"));
+        }
+    }
+
     public static void setCurrentJSON(JSONObject js){
         WifiActivity.currentJSON = js;
     }
