@@ -43,10 +43,10 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private int PACKETSTHRESHOLD = 10000;
     private static final String TEMPDESTIP = "0.0.0.0";
     private static final String TEMPDESTPORT = "8888";
-    private String seenMapFile = "seenMapFile";
-    // private File seenMapFile = new File("seenMapFile.txt");
+    private String NATFile = "NATFile";
+
     //Maps packet ID to tuple<source ip, source port, dest ip, dest port, timestamp>
-    private static HashMap<String, Integer> seenPacketsMap = new HashMap<String, Integer>();
+    private static HashMap<String, Integer> NAT = new HashMap<String, Integer>();
 
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private List<WifiP2pDevice> peersConnect = new ArrayList<WifiP2pDevice>();
@@ -144,8 +144,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 }
         );
 
-        loadSeen();
-        cleanSeen();
+        loadNAT();
+        cleanNAT();
     }
 
     @Override
@@ -153,8 +153,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
 
-        loadSeen();
-        cleanSeen();
+        loadNAT();
+        cleanNAT();
     }
     /* unregister the broadcast receiver */
     @Override
@@ -163,7 +163,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         unregisterReceiver(mReceiver);
 
         try {
-            saveSeen();
+            saveNAT();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -173,7 +173,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     protected void onStop() {
         super.onStop();
         try {
-            saveSeen();
+            saveNAT();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -240,41 +240,41 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
 
-    public static void addToSeen(String s, Integer i) {
-        WifiActivity.seenPacketsMap.put(s, i);
+    public static void addToNAT(String s, Integer i) {
+        WifiActivity.NAT.put(s, i);
 
-        System.out.println("Added " + s + ":" + i + " to packet map");
+        System.out.println("Added " + s + ":" + i + " to NAT map");
     }
 
-    public void cleanSeen() {
-        for(String s: seenPacketsMap.keySet()) {
-            if(Calendar.getInstance().getTimeInMillis() - seenPacketsMap.get(s) > PACKETSTHRESHOLD) {
-                seenPacketsMap.remove(s);
+    public void cleanNAT() {
+        for(String s: NAT.keySet()) {
+            if(Calendar.getInstance().getTimeInMillis() - NAT.get(s) > PACKETSTHRESHOLD) {
+                NAT.remove(s);
             }
         }
 
-        System.out.println("Packet Map Cleaned");
-        for (String s : seenPacketsMap.keySet()) {
-            System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
+        System.out.println("NAT Map Cleaned");
+        for (String s : NAT.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + NAT.get(s));
         }
     }
 
-    public boolean checkSeen(String s) {
-        if (seenPacketsMap.keySet().contains(s)) {
+    public boolean checkNAT(String s) {
+        if (NAT.keySet().contains(s)) {
             return true;
         }
         return false;
     }
 
-    public void saveSeen() throws IOException {
+    public void saveNAT() throws IOException {
         try {
-            FileOutputStream outStream = openFileOutput(seenMapFile, Context.MODE_PRIVATE);
+            FileOutputStream outStream = openFileOutput(NATFile, Context.MODE_PRIVATE);
             OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
 
-            for (String s : seenPacketsMap.keySet()) {
+            for (String s : NAT.keySet()) {
                 outWriter.append(s);
                 outWriter.append("\n\r");
-                outWriter.append(seenPacketsMap.get(s).toString());
+                outWriter.append(NAT.get(s).toString());
                 outWriter.append("\n\r");
             }
 
@@ -284,19 +284,19 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             e.printStackTrace();
         }
 
-        System.out.println("Packet Map Saved");
-        for (String s : seenPacketsMap.keySet()) {
-            System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
+        System.out.println("NAT Map Saved");
+        for (String s : NAT.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + NAT.get(s));
         }
     }
 
-    public void loadSeen() {
+    public void loadNAT() {
         try {
-            FileInputStream is = openFileInput(seenMapFile);
+            FileInputStream is = openFileInput(NATFile);
             BufferedReader reader;
 
-            cleanSeen();
-            is = new FileInputStream(seenMapFile);
+            cleanNAT();
+            is = new FileInputStream(NATFile);
             reader = new BufferedReader(new InputStreamReader(is));
             String id = reader.readLine();
             int time;
@@ -307,13 +307,13 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                     break;
                 }
                 time = Integer.parseInt(temp);
-                seenPacketsMap.put(id,time);
+                NAT.put(id,time);
             }
             is.close();
 
-            System.out.println("Packet Map Loaded");
-            for (String s : seenPacketsMap.keySet()) {
-                System.out.println("Key: " + s + ", Value: " + seenPacketsMap.get(s));
+            System.out.println("NAT Map Loaded");
+            for (String s : NAT.keySet()) {
+                System.out.println("Key: " + s + ", Value: " + NAT.get(s));
             }
         } catch (Exception e) {
             e.printStackTrace();

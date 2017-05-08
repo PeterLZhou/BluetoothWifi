@@ -65,6 +65,11 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
                     e.printStackTrace();
                 }
             }
+
+            if (packet_host != null && packet_port != -1) {
+                WifiActivity.addToNAT(packet_host, packet_port);
+            }
+
             if (response.getBoolean("ack")== true){
                 serverSocket.close();
                 return "Ack";
