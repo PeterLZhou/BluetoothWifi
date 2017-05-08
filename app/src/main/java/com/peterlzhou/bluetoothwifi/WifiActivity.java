@@ -64,6 +64,10 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     // Used by Device C to receive only 1 of every packet
     private static HashMap<String, Long> uniquePacketsMap = new HashMap<String, Long>();
 
+    private String sentWaitingAckFile = "sentWaitingAckFile"; // File to store the unique packets map into
+    // Used by Device A to track which packets are sent but awaiting Acks
+    private static HashMap<String, Long> sentWaitingAckMap = new HashMap<String, Long>();
+
     private static JSONObject currentJSON = new JSONObject();
 
     int USER_TYPE;
@@ -166,6 +170,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         cleanNAT();
         loadUnique();
         cleanUnique();
+        loadSent();
+        cleanSent();
     }
 
     @Override
@@ -269,12 +275,33 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         this.startService(serviceIntent2);
     }
 
+    /*
+     * Adds the values to unique packets map if the string is not already an id in the map.
+     * Return true if value added.
+     * Otherwise, return false.
+     */
+    public static boolean addToUniquePacketsIfNot(String s, Long l) {
+        if (WifiActivity.uniquePacketsMap.keySet().contains(s)) {
+            return false;
+        }
+
+        WifiActivity.uniquePacketsMap.put(s,l);
+        return true;
+    }
+
 
     public static void addToNAT(String s, String i) {
         // Add an entry to the NAT table
         WifiActivity.NAT.put(s, new Pair<String, Long>(i, Calendar.getInstance().getTimeInMillis()));
 
         System.out.println("Added " + s + ":" + i + " to NAT map");
+    }
+
+    public static void addToSent(String s) {
+        // Add an entry to the NAT table
+        WifiActivity.sentWaitingAckMap.put(s, Calendar.getInstance().getTimeInMillis());
+
+        System.out.println("Added " + s + " to Sent map");
     }
 
     public void cleanUnique() {
@@ -288,6 +315,20 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         System.out.println("uniquePacketsMap Map Cleaned");
         for (String s : uniquePacketsMap.keySet()) {
             System.out.println("Key: " + s + ", Value: " + uniquePacketsMap.get(s));
+        }
+    }
+
+    public void cleanSent() {
+        // Clean stale packets
+        for(String s: sentWaitingAckMap.keySet()) {
+            if(Calendar.getInstance().getTimeInMillis() - sentWaitingAckMap.get(s) > PACKETSTHRESHOLD) {
+                sentWaitingAckMap.remove(s);
+            }
+        }
+
+        System.out.println("sentWaitingAckMap Map Cleaned");
+        for (String s : sentWaitingAckMap.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + sentWaitingAckMap.get(s));
         }
     }
 
@@ -354,6 +395,31 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         System.out.println("Unique Map Saved");
         for (String s : uniquePacketsMap.keySet()) {
             System.out.println("Key: " + s + ", Value: " + uniquePacketsMap.get(s));
+        }
+    }
+
+    public void saveSent() throws IOException {
+        // Save the map of sent packets to a file
+        try {
+            FileOutputStream outStream = openFileOutput(uniqueFile, Context.MODE_PRIVATE);
+            OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
+
+            for (String s : sentWaitingAckMap.keySet()) {
+                outWriter.append(s);
+                outWriter.append("\n\r");
+                outWriter.append(sentWaitingAckMap.get(s).toString());
+                outWriter.append("\n\r");
+            }
+
+            outWriter.close();
+            outStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Sent Map Saved");
+        for (String s : sentWaitingAckMap.keySet()) {
+            System.out.println("Key: " + s + ", Value: " + sentWaitingAckMap.get(s));
         }
     }
 
@@ -426,18 +492,35 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         }
     }
 
-    /*
-     * Adds the values to unique packets map if the string is not already an id in the map.
-     * Return true if value added.
-     * Otherwise, return false.
-     */
-    public static boolean addToUniquePacketsIfNot(String s, Long l) {
-        if (WifiActivity.uniquePacketsMap.keySet().contains(s)) {
-            return false;
-        }
+    public void loadSent() {
+        // Load up the table of sent packets from a file
+        try {
+            FileInputStream is = openFileInput(sentWaitingAckFile);
+            BufferedReader reader;
 
-        WifiActivity.uniquePacketsMap.put(s,l);
-        return true;
+            cleanUnique();
+            is = new FileInputStream(sentWaitingAckFile);
+            reader = new BufferedReader(new InputStreamReader(is));
+            String id = reader.readLine();
+            long time;
+            String temp;
+            while(id != null){
+                temp = reader.readLine();
+                if(temp == null) {
+                    break;
+                }
+                time = Long.parseLong(temp);
+                sentWaitingAckMap.put(id,time);
+            }
+            is.close();
+
+            System.out.println("sentWaitingAckMap Map Loaded");
+            for (String s : sentWaitingAckMap.keySet()) {
+                System.out.println("Key: " + s + ", Value: " + sentWaitingAckMap.get(s));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void setCurrentJSON(JSONObject js){

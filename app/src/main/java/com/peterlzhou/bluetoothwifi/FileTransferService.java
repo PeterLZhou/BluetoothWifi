@@ -73,6 +73,8 @@ public class FileTransferService extends IntentService {
             socket.bind(null);
             socket.connect((new InetSocketAddress(host, port)), SOCKET_TIMEOUT);
 
+            long pack_id = System.currentTimeMillis();
+
             // Set Packet JSON
             JSONObject pack = new JSONObject();
             WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
@@ -80,7 +82,7 @@ public class FileTransferService extends IntentService {
             pack.put("srcIP", ip);
             pack.put("destIP", intent.getExtras().getString("dest_host"));
             pack.put("destPort", intent.getExtras().getInt("dest_port"));
-            pack.put("ID", System.currentTimeMillis());
+            pack.put("ID", pack_id);
             pack.put("body", message);
             pack.put("ack", false);
 
@@ -89,6 +91,9 @@ public class FileTransferService extends IntentService {
             OutputStream stream = socket.getOutputStream();
             stream.write(pack.toString().getBytes(Charset.forName("UTF-8")));
             stream.close();
+
+            // Add packet to the table of sent packets awaiting acks
+            WifiActivity.addToSent(Long.toString(pack_id));
         } catch (IOException e) {
             System.out.println(e.getMessage());
             //e.printStackTrace();
@@ -108,7 +113,5 @@ public class FileTransferService extends IntentService {
             }
             System.out.println("Wrapping up!");
         }
-
-
     }
 }
