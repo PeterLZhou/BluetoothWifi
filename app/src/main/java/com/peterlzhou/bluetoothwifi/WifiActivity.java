@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -66,7 +67,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
     private String sentWaitingAckFile = "sentWaitingAckFile"; // File to store the unique packets map into
     // Used by Device A to track which packets are sent but awaiting Acks
-    private static HashMap<String, Long> sentWaitingAckMap = new HashMap<String, Long>();
+    private static HashMap<String, Pair<JSONObject, Long>> sentWaitingAckMap = new HashMap<String, Pair<JSONObject, Long>>();
 
     private static JSONObject currentJSON = new JSONObject();
 
@@ -195,6 +196,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         try {
             saveNAT();
             saveUnique();
+            saveSent();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -208,6 +210,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         try {
             saveNAT();
             saveUnique();
+            saveSent();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -297,9 +300,9 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         System.out.println("Added " + s + ":" + i + " to NAT map");
     }
 
-    public static void addToSent(String s) {
+    public static void addToSent(String s, JSONObject jo) {
         // Add an entry to the NAT table
-        WifiActivity.sentWaitingAckMap.put(s, Calendar.getInstance().getTimeInMillis());
+        WifiActivity.sentWaitingAckMap.put(s, new Pair<JSONObject, Long>(jo, Calendar.getInstance().getTimeInMillis()));
 
         System.out.println("Added " + s + " to Sent map");
     }
@@ -321,7 +324,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     public void cleanSent() {
         // Clean stale packets
         for(String s: sentWaitingAckMap.keySet()) {
-            if(Calendar.getInstance().getTimeInMillis() - sentWaitingAckMap.get(s) > PACKETSTHRESHOLD) {
+            if(Calendar.getInstance().getTimeInMillis() - sentWaitingAckMap.get(s).second > PACKETSTHRESHOLD) {
                 sentWaitingAckMap.remove(s);
             }
         }
@@ -407,7 +410,22 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             for (String s : sentWaitingAckMap.keySet()) {
                 outWriter.append(s);
                 outWriter.append("\n\r");
-                outWriter.append(sentWaitingAckMap.get(s).toString());
+                outWriter.append(sentWaitingAckMap.get(s).second.toString());
+                outWriter.append("\n\r");
+
+                JSONObject pack = sentWaitingAckMap.get(s).first;
+                Iterator<String> iter = pack.keys();
+                String packet_host = null;
+
+                String packetID = null;
+                while (iter.hasNext()) {
+                    String key = iter.next();
+
+                    outWriter.append(key);
+                    outWriter.append("\n\r");
+                    outWriter.append(pack.get(key).toString());
+                    outWriter.append("\n\r");
+                }
                 outWriter.append("\n\r");
             }
 
@@ -504,13 +522,32 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             String id = reader.readLine();
             long time;
             String temp;
+            String temp2;
+
+            JSONObject pack = new JSONObject();
             while(id != null){
                 temp = reader.readLine();
                 if(temp == null) {
                     break;
                 }
                 time = Long.parseLong(temp);
-                sentWaitingAckMap.put(id,time);
+
+                while(!(temp = reader.readLine()).equals("\n\r")) {
+                    if (temp.equals("destPort")) {
+                        pack.put(temp, Integer.parseInt(reader.readLine()));
+                    } else if (temp.equals("ack")) {
+                        temp2 = reader.readLine();
+                        if(temp2.equals("true")) {
+                            pack.put(temp, true);
+                        } else {
+                            pack.put(temp, false);
+                        }
+                    } else {
+                        pack.put(temp, reader.readLine());
+                    }
+                }
+
+                sentWaitingAckMap.put(id,new Pair<JSONObject, Long>(pack, time));
             }
             is.close();
 

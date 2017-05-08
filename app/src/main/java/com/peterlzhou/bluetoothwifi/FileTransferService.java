@@ -93,7 +93,7 @@ public class FileTransferService extends IntentService {
             stream.close();
 
             // Add packet to the table of sent packets awaiting acks
-            WifiActivity.addToSent(Long.toString(pack_id));
+            WifiActivity.addToSent(Long.toString(pack_id), pack);
         } catch (IOException e) {
             System.out.println(e.getMessage());
             //e.printStackTrace();
