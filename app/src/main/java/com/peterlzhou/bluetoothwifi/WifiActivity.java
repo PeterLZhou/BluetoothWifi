@@ -41,10 +41,10 @@ import static java.sql.Types.NULL;
  */
 
 public class WifiActivity extends AppCompatActivity implements WifiP2pManager.PeerListListener{
-    private int PACKETSTHRESHOLD = 10000;
-    private static final String TEMPDESTIP = "0.0.0.0";
-    private static final String TEMPDESTPORT = "8888";
-    private String NATFile = "NATFile";
+    private int PACKETSTHRESHOLD = 10000; // 10 seconds until packet is stale
+    private static final String TEMPDESTIP = "0.0.0.0"; // Default Dest IP if none given
+    private static final String TEMPDESTPORT = "8888"; // Default Dest Port if none given
+    private String NATFile = "NATFile"; // File to store the NAT into
 
     // Maps packet ID to tuple<source ip, timestamp>
     private static HashMap<String, Pair<String, Long>> NAT = new HashMap<String, Pair<String, Long>>();
@@ -60,7 +60,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     BroadcastReceiver mReceiver;
     WifiP2pConfig config = new WifiP2pConfig();
 
-    private String uniqueFile = "uniqueFile";
+    private String uniqueFile = "uniqueFile"; // File to store the unique packets map into
     // Used by Device C to receive only 1 of every packet
     private static HashMap<String, Long> uniquePacketsMap = new HashMap<String, Long>();
 
@@ -69,8 +69,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     int USER_TYPE;
     WifiP2pManager.PeerListListener mPeerListListener;
 
-    public WifiActivity() throws FileNotFoundException {
-    }
+    // Constructor
+    public WifiActivity() throws FileNotFoundException {}
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -88,6 +88,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        // Discover WiFi Direct Peers
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -99,14 +101,18 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 System.out.println("Error code" + reasonCode);
             }
         });
+
+        // Buttons to determine action
         Button sendAsClient = (Button) findViewById(R.id.sendstuff);
         Button listenAsServer = (Button) findViewById(R.id.listen);
         Button sendToInternet = (Button) findViewById(R.id.sendtointernet);
-        //Starts the wifi listening section
+
+        // Starts the wifi listening section
         sendAsClient.setOnClickListener(
                 new Button.OnClickListener(){
                     @Override
                     public void onClick(View v){
+                        // Get input from UI
                         EditText text = (EditText) findViewById(R.id.message);
                         EditText ip = (EditText) findViewById(R.id.dest_ip);
                         EditText port = (EditText) findViewById(R.id.dest_port);
@@ -125,6 +131,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                             System.out.println("Port Default used");
                         }
 
+                        // Send intended message to WiFi Direct server
                         try{
                             sendData(message, ipText, Integer.parseInt(portText));
                         } catch (Exception e) {
@@ -134,6 +141,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 }
         );
 
+        // We are acting as the WiFi Direct Server
         listenAsServer.setOnClickListener(
                 new Button.OnClickListener(){
                     @Override
@@ -142,6 +150,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                     }
                 }
         );
+
+        // We are acting as the internet client
         sendToInternet.setOnClickListener(
                 new Button.OnClickListener(){
                     @Override
@@ -151,6 +161,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                 }
         );
 
+        // Load and clean tables from file
         loadNAT();
         cleanNAT();
         loadUnique();
@@ -162,17 +173,19 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
 
+        // Load and clean tables from file
         loadNAT();
         cleanNAT();
         loadUnique();
         cleanUnique();
     }
-    /* unregister the broadcast receiver */
+
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mReceiver);
 
+        // Save the tables to files
         try {
             saveNAT();
             saveUnique();
@@ -184,6 +197,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     @Override
     protected void onStop() {
         super.onStop();
+
+        // Save the tables to files
         try {
             saveNAT();
             saveUnique();
@@ -195,9 +210,6 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     @Override
     public void onPeersAvailable(WifiP2pDeviceList peerlist) {
         try {
-            //System.out.println("Peerlist available");
-            //System.out.println(peerlist);
-            //System.out.println(peerlist.getDeviceList());
             Iterator<WifiP2pDevice> mIterator = peerlist.getDeviceList().iterator();
             WifiP2pDevice device;
             while (mIterator.hasNext()) {
@@ -232,6 +244,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
     public void sendData(String message, String ip, int port){
         System.out.println("sendasclient");
+
+        // Give the necessary data to FileTransferService to send to the WiFi Direct Recipient
         Intent serviceIntent = new Intent(this, FileTransferService.class);
         serviceIntent.putExtra("MESSAGE", message);
         serviceIntent.putExtra("go_host", "172.27.83.183");
@@ -242,11 +256,13 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     public void receiveData(){
+        // Process data using the FileServerAsyncTask
         FileServerAsyncTask FileServerobj = new FileServerAsyncTask(this);
         FileServerobj.execute();
     }
 
     public void reachWeb(){
+        // Give the necessary data to SendToInternet service to send to the Internet Recipient
         System.out.println("Sending to web");
         Intent serviceIntent2 = new Intent(this, SendToInternet.class);
         this.startService(serviceIntent2);
@@ -254,12 +270,14 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
 
 
     public static void addToNAT(String s, String i) {
+        // Add an entry to the NAT table
         WifiActivity.NAT.put(s, new Pair<String, Long>(i, Calendar.getInstance().getTimeInMillis()));
 
         System.out.println("Added " + s + ":" + i + " to NAT map");
     }
 
     public void cleanUnique() {
+        // Clean stale packets
         for(String s: uniquePacketsMap.keySet()) {
             if(Calendar.getInstance().getTimeInMillis() - uniquePacketsMap.get(s) > PACKETSTHRESHOLD) {
                 uniquePacketsMap.remove(s);
@@ -273,6 +291,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     public void cleanNAT() {
+        // Clean stale packets
         for(String s: NAT.keySet()) {
             if(Calendar.getInstance().getTimeInMillis() - NAT.get(s).second > PACKETSTHRESHOLD) {
                 NAT.remove(s);
@@ -285,14 +304,8 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         }
     }
 
-    public boolean checkNAT(String s) {
-        if (NAT.keySet().contains(s)) {
-            return true;
-        }
-        return false;
-    }
-
     public void saveNAT() throws IOException {
+        // Save NAT to a file
         try {
             FileOutputStream outStream = openFileOutput(NATFile, Context.MODE_PRIVATE);
             OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
@@ -319,6 +332,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     public void saveUnique() throws IOException {
+        // Save the map of unique packets received to a file
         try {
             FileOutputStream outStream = openFileOutput(uniqueFile, Context.MODE_PRIVATE);
             OutputStreamWriter outWriter = new OutputStreamWriter(outStream);
@@ -343,6 +357,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     public void loadNAT() {
+        // Load up the NAT table from a file
         try {
             FileInputStream is = openFileInput(NATFile);
             BufferedReader reader;
@@ -380,6 +395,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     }
 
     public void loadUnique() {
+        // Load up the table of unique packets received from a file
         try {
             FileInputStream is = openFileInput(uniqueFile);
             BufferedReader reader;

@@ -53,7 +53,6 @@ public class FileTransferService extends IntentService {
 
     @Override
     public void onCreate() {
-        // TODO Auto-generated method stub
         System.out.println("Service started!");
         super.onCreate();
         mHandler = new Handler();
