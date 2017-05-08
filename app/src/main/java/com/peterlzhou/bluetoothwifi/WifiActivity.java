@@ -50,7 +50,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private static final String TEMPDESTPORT = "8888"; // Default Dest Port if none given
     private String NATFile = "NATFile"; // File to store the NAT into
 
-    // Maps packet ID to tuple<source ip, timestamp>
+    // Maps packet ID to tuple<source ip, timestamp>. Used to match unique packet ID to IP address
     private static HashMap<String, Pair<String, Long>> NAT = new HashMap<String, Pair<String, Long>>();
 
     // List of all peers, connected peers, and names of peers
@@ -71,7 +71,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private String sentWaitingAckFile = "sentWaitingAckFile"; // File to store the unique packets map into
     // Used by Device A to track which packets are sent but awaiting Acks
     public static HashMap<String, Pair<JSONObject, Long>> sentWaitingAckMap = new HashMap<String, Pair<JSONObject, Long>>();
-
+    //Empty JSON object - will be populated with current received packet
     private static JSONObject currentJSON = new JSONObject();
 
     int USER_TYPE;
@@ -88,9 +88,11 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         Intent intent = getIntent();
         USER_TYPE = intent.getIntExtra(MainActivity.USER_TYPE, 0);
 
+        //Initialize WifiP2pManager, Channel, and Receiver
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
         mReceiver = new Receiver(mManager, mChannel, this);
+        //Add states to listen for
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
@@ -117,6 +119,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                     public void run() {
                         cleanNAT();
                         cleanUnique();
+                        //Resend packets if ack not received
                         try {
                             sendBufferedPackets();
                         }

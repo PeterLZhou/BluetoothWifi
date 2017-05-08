@@ -35,6 +35,7 @@ public class SendToInternet extends IntentService {
         System.out.println("Handling Intent");
         HttpURLConnection client = null;
         try {
+            //Create URL and initiate connection to backend
             URL url = new URL("https://bluetoothwifi.herokuapp.com/ping");
             client = (HttpURLConnection) url.openConnection();
             client.setRequestMethod("POST");

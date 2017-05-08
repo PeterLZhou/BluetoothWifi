@@ -38,6 +38,7 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
     @Override
     protected String doInBackground(Void... params) {
         try {
+            //Start server and await connection
             System.out.println("Starting server!");
             ServerSocket serverSocket = new ServerSocket(8888);
             Socket client = serverSocket.accept();
@@ -113,7 +114,6 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
         else if (result == "packet"){
             System.out.println("Sender protocol");
             forwardPropagate();
-            //TODO: Add object to unique packet table
         }
         else if (result == "Response"){
             System.out.println("Error");
@@ -130,6 +130,7 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
         System.out.println("Opening a server socket");
     }
 
+    //Converts an input stream into a JSON
     private JSONObject convertStreamToJSON(InputStream is) throws JSONException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();

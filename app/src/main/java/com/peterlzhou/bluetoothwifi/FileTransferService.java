@@ -52,6 +52,7 @@ public class FileTransferService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
+        //Initiate connection to server
         System.out.println("Sending message!");
         String host = intent.getExtras().getString(EXTRAS_GROUP_OWNER_ADDRESS);
         Socket socket = new Socket();
