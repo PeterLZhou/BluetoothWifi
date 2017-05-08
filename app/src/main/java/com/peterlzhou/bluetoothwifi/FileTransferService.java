@@ -30,22 +30,11 @@ import org.json.JSONObject;
  * socket connection with the WiFi Direct Group Owner and writing the file
  */
 public class FileTransferService extends IntentService {
-    // private static final String TEMPDESTIP = "0.0.0.0";
-    // private static final String TEMPDESTPORT = "8888";
     Handler mHandler;
 
     public static final int SOCKET_TIMEOUT = 5000;
     public static final String EXTRAS_GROUP_OWNER_ADDRESS = "go_host";
     public static final String EXTRAS_GROUP_OWNER_PORT = "go_port";
-
-    public static  int PORT = 8888;
-    public static final String inetaddress = "inetaddress";
-    public static final int ByteSize = 512;
-    public static final String Extension = "extension";
-    public static final String Filelength = "filelength";
-    public FileTransferService(String name) {
-        super(name);
-    }
 
     public FileTransferService() {
         super("FileTransferService");
@@ -64,7 +53,6 @@ public class FileTransferService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         System.out.println("Sending message!");
-        Context context = getApplicationContext();
         String host = intent.getExtras().getString(EXTRAS_GROUP_OWNER_ADDRESS);
         Socket socket = new Socket();
         int port = intent.getExtras().getInt(EXTRAS_GROUP_OWNER_PORT);
@@ -84,8 +72,6 @@ public class FileTransferService extends IntentService {
             pack.put("body", message);
             pack.put("ack", intent.getExtras().getBoolean("ack"));
 
-            /*OutputStreamWriter out = new OutputStreamWriter(socket.getOutputStream());
-            out.write(pack.toString());*/
             OutputStream stream = socket.getOutputStream();
             stream.write(pack.toString().getBytes(Charset.forName("UTF-8")));
             stream.close();
@@ -96,7 +82,6 @@ public class FileTransferService extends IntentService {
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            //e.printStackTrace();
             //CommonMethods.e("Unable to connect host", "service socket error in wififiletransferservice class");
         } catch (JSONException e) {
             e.printStackTrace();

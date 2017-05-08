@@ -113,7 +113,7 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
         else if (result == "packet"){
             System.out.println("Sender protocol");
             forwardPropagate();
-            //TODO: Add object to
+            //TODO: Add object to unique packet table
         }
         else if (result == "Response"){
             System.out.println("Error");
@@ -154,12 +154,12 @@ public class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
 
     public void backPropagate(){
 
-        System.out.println("help");
+        System.out.println("Send ack to all local devices");
         //TODO: For every ip in our local available devices, call WifiActivity.sendData with ack = true
     }
 
     public void forwardPropagate(){
-        System.out.println("help");
+        System.out.println("Send packet to all local devices");
     }
 
 }

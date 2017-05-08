@@ -75,7 +75,6 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     private static JSONObject currentJSON = new JSONObject();
 
     int USER_TYPE;
-    WifiP2pManager.PeerListListener mPeerListListener;
 
     // Constructor
     public WifiActivity() throws FileNotFoundException {}
@@ -118,7 +117,12 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
                     public void run() {
                         cleanNAT();
                         cleanUnique();
-                        cleanSent();
+                        try {
+                            sendBufferedPackets();
+                        }
+                        catch (JSONException e){
+                            System.out.println("Invalid JSON");
+                        }
                     }
                 }, 0, 10, TimeUnit.SECONDS);
 
