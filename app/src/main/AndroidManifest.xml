@@ -61,6 +61,7 @@
         </activity>
 
         <service android:enabled="true" android:name="com.peterlzhou.bluetoothwifi.FileTransferService"></service>
+        <service android:enabled="true" android:name="com.peterlzhou.bluetoothwifi.SendToInternet"></service>
     </application>
 
 </manifest>

@@ -8,7 +8,9 @@ import android.os.Handler;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -22,28 +24,16 @@ import java.nio.charset.Charset;
  */
 
 public class SendToInternet extends IntentService {
-    Handler mHandler;
-
-    public static final int SOCKET_TIMEOUT = 5000;
-    public static final String EXTRAS_GROUP_OWNER_ADDRESS = "go_host";
-    public static final String EXTRAS_GROUP_OWNER_PORT = "go_port";
-
-    public static  int PORT = 8888;
-    public static final String inetaddress = "inetaddress";
-    public static final int ByteSize = 512;
-    public static final String Extension = "extension";
-    public static final String Filelength = "filelength";
-    public SendToInternet(String name) {
-        super(name);
-    }
+    StringBuilder sb = new StringBuilder();
 
     public SendToInternet() {
-        super("FileTransferService");
+        super("SendToInternet");
     }
 
     /*@Override
     public void onCreate() {
         // TODO Auto-generated method stub
+
         System.out.println("Service started!");
         super.onCreate();
         mHandler = new Handler();
@@ -74,8 +64,8 @@ public class SendToInternet extends IntentService {
             //Specify the attributes of the JSON object:
             //pokemonName is a string, latitude and longitude are doubles, captureTime is a long in milliseconds
             node.put("srcip", node.get("destIP"));
-            node.put("port", intent.getExtras().getInt("destPort"));
-            node.put("message", intent.getExtras().getString("body"));
+            node.put("port", node.get("destPort"));
+            node.put("message", node.get("body"));
             //This is for debugging purposes
             //System.out.println(node.toString(4));
             //Open up the output stream so we can write our JSON object into the server
@@ -85,9 +75,26 @@ public class SendToInternet extends IntentService {
             output.flush();
             //close the output stream
             output.close();
+            int HttpResult =client.getResponseCode();
+            System.out.println("The response code is " + HttpResult);
+            if(HttpResult ==HttpURLConnection.HTTP_OK){
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        client.getInputStream(),"utf-8"));
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                br.close();
+
+                System.out.println(""+sb.toString());
+
+            }else{
+                System.out.println(client.getResponseMessage());
+            }
         }
         catch (IOException | JSONException e) {
             e.printStackTrace();
+            System.out.println("Error");
         }
         finally{
             System.out.println("Done");

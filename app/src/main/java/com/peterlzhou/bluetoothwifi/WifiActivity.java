@@ -248,6 +248,7 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
         // Give the necessary data to FileTransferService to send to the WiFi Direct Recipient
         Intent serviceIntent = new Intent(this, FileTransferService.class);
         serviceIntent.putExtra("MESSAGE", message);
+        //Set this to be the IP of device B
         serviceIntent.putExtra("go_host", "172.27.83.183");
         serviceIntent.putExtra("go_port", 8888);
         serviceIntent.putExtra("dest_host", ip);
