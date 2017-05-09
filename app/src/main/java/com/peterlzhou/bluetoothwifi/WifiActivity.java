@@ -466,6 +466,11 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     public void loadNAT() {
         // Load up the NAT table from a file
         try {
+            File testFile = new File(getFilesDir() + "/" + NATFile);
+            if (testFile == null || !testFile.exists()) {
+                return;
+            }
+
             FileInputStream is = openFileInput(NATFile);
             BufferedReader reader;
 
@@ -503,6 +508,11 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     public void loadUnique() {
         // Load up the table of unique packets received from a file
         try {
+            File testFile = new File(getFilesDir() + "/" + NATFile);
+            if (testFile == null || !testFile.exists()) {
+                return;
+            }
+
             FileInputStream is = openFileInput(uniqueFile);
             BufferedReader reader;
 
@@ -533,6 +543,11 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
     public void loadSent() {
         // Load up the table of sent packets from a file
         try {
+            File testFile = new File(getFilesDir() + "/" + NATFile);
+            if (testFile == null || !testFile.exists()) {
+                return;
+            }
+            
             FileInputStream is = openFileInput(sentWaitingAckFile);
             BufferedReader reader;
 
