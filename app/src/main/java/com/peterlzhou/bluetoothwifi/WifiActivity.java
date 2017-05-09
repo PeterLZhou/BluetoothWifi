@@ -470,7 +470,6 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             BufferedReader reader;
 
             cleanNAT();
-            is = new FileInputStream(NATFile);
             reader = new BufferedReader(new InputStreamReader(is));
             String id = reader.readLine();
             String host;
@@ -508,7 +507,6 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             BufferedReader reader;
 
             cleanUnique();
-            is = new FileInputStream(uniqueFile);
             reader = new BufferedReader(new InputStreamReader(is));
             String id = reader.readLine();
             long time;
@@ -539,7 +537,6 @@ public class WifiActivity extends AppCompatActivity implements WifiP2pManager.Pe
             BufferedReader reader;
 
             cleanUnique();
-            is = new FileInputStream(sentWaitingAckFile);
             reader = new BufferedReader(new InputStreamReader(is));
             String id = reader.readLine();
             long time;
